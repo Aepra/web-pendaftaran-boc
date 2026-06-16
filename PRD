@@ -1,0 +1,835 @@
+# PRD — Sistem Form Pendaftaran Lomba dengan Payment Gateway
+
+## 1. Ringkasan Produk
+
+Sistem ini adalah website form pendaftaran lomba berbasis web custom yang memungkinkan peserta mendaftar secara online, melakukan pembayaran biaya registrasi melalui payment gateway, dan mendapatkan konfirmasi pendaftaran secara otomatis setelah pembayaran berhasil.
+
+Sistem dirancang agar panitia dapat memantau data peserta melalui Google Spreadsheet tanpa perlu membuat dashboard admin kompleks di tahap awal.
+
+---
+
+## 2. Tujuan Produk
+
+Tujuan utama sistem ini adalah:
+
+1. Memudahkan peserta melakukan pendaftaran lomba secara online.
+2. Mengotomatisasi proses pembayaran biaya registrasi.
+3. Mengurangi pekerjaan manual panitia dalam mengecek bukti transfer.
+4. Menyimpan data peserta secara rapi di Google Spreadsheet.
+5. Memberikan status pembayaran yang jelas: pending, paid, failed, expired.
+6. Menghitung biaya admin payment gateway secara dinamis berdasarkan metode pembayaran yang dipilih peserta.
+7. Mengirimkan konfirmasi pendaftaran setelah pembayaran berhasil.
+
+---
+
+## 3. Target Pengguna
+
+### 3.1 Peserta Lomba
+
+Peserta adalah individu atau tim yang ingin mendaftar lomba melalui website.
+
+Kebutuhan peserta:
+
+* Mengisi data pendaftaran dengan mudah.
+* Melihat biaya pendaftaran, biaya admin pembayaran, dan total pembayaran.
+* Memilih metode pembayaran sebelum payment link/invoice dibuat.
+* Mendapatkan link pembayaran.
+* Mendapatkan konfirmasi setelah pembayaran berhasil.
+* Mendapatkan ID pendaftaran atau nomor peserta.
+
+### 3.2 Panitia
+
+Panitia adalah pengelola lomba yang bertugas memantau data pendaftaran.
+
+Kebutuhan panitia:
+
+* Melihat daftar peserta.
+* Melihat status pembayaran peserta.
+* Melihat rincian `base_amount`, `admin_fee`, dan `total_amount`.
+* Memfilter peserta yang sudah membayar.
+* Melakukan verifikasi tambahan jika diperlukan.
+* Mengunduh atau mengelola data melalui Google Spreadsheet.
+
+---
+
+## 4. Ruang Lingkup Sistem
+
+### 4.1 Termasuk dalam Scope
+
+Sistem mencakup:
+
+* Landing page/form pendaftaran lomba.
+* Validasi input form.
+* Penyimpanan data pendaftaran ke Google Spreadsheet.
+* Generate `registration_id` dan `order_id`.
+* Perhitungan biaya admin payment gateway secara dinamis berdasarkan metode pembayaran.
+* Integrasi payment gateway.
+* Redirect peserta ke halaman pembayaran.
+* Webhook/callback pembayaran.
+* Update status pembayaran otomatis.
+* Email konfirmasi setelah pembayaran berhasil.
+* Halaman sukses, pending, dan gagal pembayaran.
+
+### 4.2 Tidak Termasuk dalam Scope Tahap Awal
+
+Fitur berikut tidak termasuk dalam tahap awal:
+
+* Login peserta.
+* Dashboard admin custom.
+* Sistem multi-role.
+* Edit data pendaftaran oleh peserta.
+* Refund otomatis.
+* Sertifikat otomatis.
+* WhatsApp gateway otomatis.
+* Database PostgreSQL/Supabase.
+* Sistem penilaian lomba.
+
+Fitur tersebut dapat dikembangkan pada tahap berikutnya.
+
+---
+
+## 5. Arsitektur Sistem
+
+Arsitektur yang digunakan:
+
+```text
+Peserta
+↓
+Web Custom Form
+↓
+Google Apps Script / Backend API
+↓
+Payment Gateway
+↓
+Webhook Payment Gateway
+↓
+Google Apps Script / Backend API
+↓
+Google Spreadsheet
+↓
+Email Konfirmasi
+```
+
+Komponen sistem:
+
+1. Frontend Website
+   Digunakan untuk menampilkan form dan halaman status pembayaran.
+
+2. Google Apps Script / Backend API
+   Digunakan sebagai penghubung antara frontend, spreadsheet, dan payment gateway.
+
+3. Payment Gateway
+   Digunakan untuk membuat transaksi pembayaran dan menerima notifikasi status pembayaran.
+
+4. Google Spreadsheet
+   Digunakan sebagai database awal untuk menyimpan data pendaftaran.
+
+5. Email Service
+   Digunakan untuk mengirim konfirmasi pendaftaran kepada peserta.
+
+---
+
+## 6. Rekomendasi Teknologi
+
+### 6.1 Frontend
+
+Opsi teknologi:
+
+* HTML, CSS, JavaScript biasa; atau
+* React; atau
+* Next.js.
+
+Rekomendasi awal:
+
+```text
+React / Next.js + deploy ke Vercel
+```
+
+### 6.2 Backend
+
+Opsi teknologi:
+
+* Google Apps Script Web App; atau
+* Next.js API Route; atau
+* Express.js di Render.
+
+Rekomendasi awal untuk versi sederhana:
+
+```text
+Google Apps Script Web App
+```
+
+Rekomendasi untuk versi lebih profesional:
+
+```text
+Next.js API Route + Google Sheets API
+```
+
+### 6.3 Database
+
+Database awal:
+
+```text
+Google Spreadsheet
+```
+
+### 6.4 Payment Gateway
+
+Opsi payment gateway:
+
+* Midtrans Payment Link / Snap
+* Xendit Payment Link / Invoice
+
+Rekomendasi awal:
+
+```text
+Payment Link / Invoice dengan pemilihan metode pembayaran sebelum invoice dibuat
+```
+
+Alasannya karena tetap sederhana, cepat diterapkan, dan tidak perlu membuat halaman checkout sendiri. Karena biaya admin dipilih menggunakan **Opsi B — Biaya Admin Dinamis Berdasarkan Metode Pembayaran**, sistem perlu mengetahui metode pembayaran pilihan peserta sebelum membuat invoice/payment link agar nominal tagihan dapat dihitung akurat.
+
+---
+
+## 7. System Flow
+
+### 7.1 High Level System Flow
+
+```text
+Peserta
+   ↓
+Mengisi Form Pendaftaran
+   ↓
+Frontend Website
+   ↓
+Backend API
+   ↓
+Validasi Data
+   ↓
+Generate Registration ID & Order ID
+   ↓
+Hitung Base Amount
+   ↓
+Peserta Pilih Metode Pembayaran
+   ↓
+Hitung Admin Fee Dinamis
+   ↓
+Hitung Total Amount
+   ↓
+Simpan Data ke Spreadsheet
+   ↓
+Create Payment Link dengan Total Amount
+   ↓
+Payment Gateway
+   ↓
+Peserta Melakukan Pembayaran
+   ↓
+Webhook Payment Gateway
+   ↓
+Backend API
+   ↓
+Update Status Pembayaran
+   ↓
+Google Spreadsheet
+   ↓
+Kirim Email Konfirmasi
+   ↓
+Peserta Resmi Terdaftar
+```
+
+### 7.2 Detail System Flow Pendaftaran
+
+```text
+Peserta membuka website
+        ↓
+Mengisi form pendaftaran
+        ↓
+Klik tombol Daftar
+        ↓
+Frontend validasi data
+        ↓
+Backend menerima data
+        ↓
+Generate registration_id
+Generate order_id
+        ↓
+Tentukan base_amount sesuai kategori lomba
+        ↓
+Peserta memilih metode pembayaran
+        ↓
+Hitung admin_fee berdasarkan metode pembayaran
+        ↓
+Hitung total_amount = base_amount + admin_fee
+        ↓
+Simpan data ke Spreadsheet
+(Status: PENDING_PAYMENT)
+        ↓
+Create payment link/invoice dengan nominal total_amount
+        ↓
+Simpan payment URL
+        ↓
+Redirect ke halaman pembayaran
+```
+
+### 7.3 Detail System Flow Pembayaran
+
+```text
+Peserta membuka payment link sesuai metode pembayaran yang dipilih
+        ↓
+Melakukan pembayaran
+        ↓
+Payment Gateway memproses transaksi
+        ↓
+Webhook dikirim ke Backend
+        ↓
+Backend verifikasi signature
+        ↓
+Cari order_id
+        ↓
+Update payment_status
+        ↓
+Update participant_status
+        ↓
+Kirim email konfirmasi
+        ↓
+Selesai
+```
+
+### 7.4 System Flow Error Handling
+
+```text
+Submit Form
+      ↓
+Validasi Gagal?
+      ↓
+Ya → Tampilkan Error
+Tidak
+      ↓
+Create Payment Link
+      ↓
+Gagal?
+      ↓
+Ya → Simpan Log Error
+      ↓
+Tampilkan Pesan ke Peserta
+Tidak
+      ↓
+Lanjut ke Pembayaran
+```
+
+---
+
+## 8. Business Flow
+
+### 8.1 Business Flow Pendaftaran Peserta
+
+```text
+Peserta ingin mengikuti lomba
+        ↓
+Peserta mengisi formulir
+        ↓
+Peserta melakukan pembayaran
+        ↓
+Pembayaran berhasil
+        ↓
+Peserta resmi terdaftar
+        ↓
+Peserta menerima email konfirmasi
+        ↓
+Peserta mengikuti tahapan lomba
+```
+
+### 8.2 Business Flow Panitia
+
+```text
+Panitia membuka pendaftaran
+        ↓
+Peserta melakukan registrasi
+        ↓
+Sistem mencatat data peserta
+        ↓
+Sistem mencatat pembayaran
+        ↓
+Panitia memonitor Spreadsheet
+        ↓
+Panitia melakukan verifikasi data
+        ↓
+Panitia mengumumkan peserta valid
+        ↓
+Peserta mengikuti lomba
+```
+
+### 8.3 Business Flow Status Peserta
+
+```text
+Pendaftaran Dibuat
+        ↓
+WAITING_PAYMENT
+        ↓
+Pembayaran Berhasil?
+        ↓
+Tidak
+ ├─ EXPIRED
+ ├─ FAILED
+ └─ CANCELLED
+
+Ya
+        ↓
+REGISTERED
+        ↓
+Verifikasi Panitia
+        ↓
+VERIFIED
+```
+
+### 8.4 Business Flow Pembayaran
+
+```text
+Peserta Submit Form
+        ↓
+Peserta Pilih Metode Pembayaran
+        ↓
+Admin Fee Dinamis Dihitung
+        ↓
+Invoice Dibuat dengan Total Amount
+        ↓
+Status = PENDING_PAYMENT
+        ↓
+Peserta Membayar
+        ↓
+Payment Gateway Mengirim Webhook
+        ↓
+Status = PAID
+        ↓
+Email Konfirmasi Dikirim
+        ↓
+Peserta Aktif
+```
+
+### 8.5 Business Rules Flow
+
+```text
+Submit Form
+      ↓
+Data Tersimpan
+      ↓
+Belum Bayar
+      ↓
+WAITING_PAYMENT
+      ↓
+Bayar Berhasil
+      ↓
+REGISTERED
+      ↓
+Verifikasi Panitia
+      ↓
+VERIFIED
+      ↓
+Mengikuti Lomba
+```
+
+---
+
+## 9. Alur Utama Sistem
+
+### 9.1 Alur Pendaftaran Peserta
+
+1. Peserta membuka halaman pendaftaran.
+2. Peserta mengisi form pendaftaran.
+3. Peserta menekan tombol daftar.
+4. Sistem melakukan validasi data.
+5. Sistem membuat `registration_id`.
+6. Sistem membuat `order_id`.
+7. Sistem menentukan `base_amount` sesuai kategori lomba.
+8. Peserta memilih metode pembayaran.
+9. Sistem menghitung `admin_fee` berdasarkan metode pembayaran.
+10. Sistem menghitung `total_amount = base_amount + admin_fee`.
+11. Sistem menyimpan data awal ke Spreadsheet.
+12. Sistem membuat payment link melalui payment gateway dengan nominal `total_amount`.
+13. Sistem menyimpan payment link ke Spreadsheet.
+14. Peserta diarahkan ke halaman pembayaran.
+
+### 9.2 Alur Pembayaran
+
+1. Peserta membuka payment link sesuai metode pembayaran yang sudah dipilih.
+2. Peserta menyelesaikan pembayaran sebesar `total_amount`.
+3. Payment gateway mengirim webhook ke backend.
+4. Backend memverifikasi webhook.
+5. Backend mencocokkan `order_id`.
+6. Backend memvalidasi nominal pembayaran terhadap `total_amount`.
+7. Backend menyimpan metode pembayaran aktual dari webhook jika tersedia.
+8. Backend memperbarui status pembayaran di Spreadsheet.
+9. Jika pembayaran berhasil, status menjadi `PAID`.
+10. Sistem mengirim email konfirmasi ke peserta.
+
+### 9.3 Alur Konfirmasi
+
+1. Setelah status pembayaran menjadi `PAID`, sistem membuat atau mengaktifkan nomor peserta.
+2. Sistem mengirim email berisi:
+
+   * Nama peserta/tim
+   * ID pendaftaran
+   * Status pembayaran
+   * Kategori lomba
+   * Informasi lanjutan lomba
+3. Panitia dapat melihat data peserta di Google Spreadsheet.
+
+---
+
+## 10. Field Form Pendaftaran
+
+### 10.1 Data Umum
+
+| Field          | Tipe     | Wajib    | Keterangan                |
+| -------------- | -------- | -------- | ------------------------- |
+| Nama Tim       | Text     | Ya       | Jika lomba berbasis tim   |
+| Nama Ketua     | Text     | Ya       | Nama penanggung jawab tim |
+| Email          | Email    | Ya       | Untuk konfirmasi          |
+| Nomor WhatsApp | Text     | Ya       | Kontak utama              |
+| Instansi       | Text     | Ya       | Sekolah/kampus/organisasi |
+| Kategori Lomba | Select   | Ya       | Pilihan kategori lomba    |
+| Metode Pembayaran | Select | Ya | Digunakan untuk menghitung biaya admin dinamis |
+| Jumlah Anggota | Number   | Ya       | Jumlah anggota tim        |
+| Nama Anggota   | Textarea | Opsional | Bisa disesuaikan          |
+| Catatan        | Textarea | Opsional | Catatan tambahan          |
+
+### 10.2 Data Tambahan Opsional
+
+| Field                          | Tipe | Keterangan               |
+| ------------------------------ | ---- | ------------------------ |
+| Upload Kartu Pelajar/Mahasiswa | File | Disimpan ke Google Drive |
+| Upload Surat Delegasi          | File | Disimpan ke Google Drive |
+| Asal Daerah                    | Text | Jika lomba nasional      |
+| Nama Pembimbing                | Text | Jika perlu               |
+| Nomor Pembimbing               | Text | Jika perlu               |
+
+---
+
+## 11. Struktur Google Spreadsheet
+
+Nama sheet utama:
+
+```text
+registrations
+```
+
+Kolom yang disarankan:
+
+* registration_id
+* order_id
+* created_at
+* nama_tim
+* nama_ketua
+* email
+* whatsapp
+* instansi
+* kategori_lomba
+* jumlah_anggota
+* nama_anggota
+* base_amount
+* admin_fee
+* admin_fee_type
+* admin_fee_rate
+* admin_fee_fixed
+* total_amount
+* payment_status
+* payment_url
+* payment_method
+* paid_at
+* participant_status
+* email_status
+* notes
+
+### 11.1 Konfigurasi Biaya Admin Dinamis
+
+Karena sistem menggunakan **Opsi B — Biaya Admin Dinamis Berdasarkan Metode Pembayaran**, backend perlu memiliki konfigurasi biaya admin yang dapat diubah tanpa mengubah kode utama. Untuk MVP, konfigurasi ini dapat disimpan di sheet tambahan.
+
+Nama sheet konfigurasi:
+
+```text
+payment_methods
+```
+
+Kolom yang disarankan:
+
+* payment_method_code
+* payment_method_name
+* is_active
+* admin_fee_type
+* admin_fee_rate
+* admin_fee_fixed
+* minimum_fee
+* maximum_fee
+* notes
+
+Contoh konfigurasi:
+
+| payment_method_code | payment_method_name | admin_fee_type | admin_fee_rate | admin_fee_fixed | Contoh Perhitungan |
+| ------------------- | ------------------- | -------------- | -------------- | --------------- | ------------------ |
+| VA                  | Virtual Account     | fixed          | 0              | 4000            | Rp100.000 + Rp4.000 = Rp104.000 |
+| QRIS                | QRIS                | percentage     | 0.007          | 0               | Rp100.000 + Rp700 = Rp100.700 |
+| EWALLET             | E-Wallet            | percentage     | 0.015          | 0               | Rp100.000 + Rp1.500 = Rp101.500 |
+| CREDIT_CARD         | Kartu Kredit        | mixed          | 0.029          | 2000            | Rp100.000 + Rp4.900 = Rp104.900 |
+
+Aturan perhitungan:
+
+```text
+fixed      : admin_fee = admin_fee_fixed
+percentage : admin_fee = base_amount × admin_fee_rate
+mixed      : admin_fee = (base_amount × admin_fee_rate) + admin_fee_fixed
+total_amount = base_amount + admin_fee
+```
+
+Aturan pembulatan:
+
+* `admin_fee` dibulatkan ke rupiah terdekat atau ke atas sesuai kebijakan panitia/payment gateway.
+* Aturan pembulatan harus konsisten dan dicatat di konfigurasi.
+* Nilai `admin_fee` yang sudah dihitung saat transaksi dibuat harus disimpan sebagai snapshot agar tidak berubah walaupun konfigurasi biaya admin diubah di kemudian hari.
+
+---
+
+## 12. Status Sistem
+
+### 12.1 Status Pembayaran
+
+```text
+PENDING_PAYMENT
+PAID
+EXPIRED
+FAILED
+CANCELLED
+REFUNDED
+```
+
+### 12.2 Status Peserta
+
+```text
+WAITING_PAYMENT
+REGISTERED
+VERIFIED
+REJECTED
+```
+
+---
+
+## 13. Halaman Website
+
+### 13.1 Halaman Beranda / Pendaftaran
+
+* Nama lomba
+* Deskripsi lomba
+* Timeline
+* Biaya pendaftaran
+* Pilihan metode pembayaran
+* Estimasi biaya admin berdasarkan metode pembayaran
+* Total pembayaran sebelum peserta melanjutkan bayar
+* Form pendaftaran
+
+### 13.2 Halaman Pending
+
+* Status pembayaran menunggu
+* Payment link
+* Registration ID
+* Rincian pembayaran: biaya pendaftaran, biaya admin, dan total pembayaran
+
+### 13.3 Halaman Sukses
+
+* Pembayaran berhasil
+* Nomor peserta
+* Informasi lanjutan
+
+### 13.4 Halaman Gagal
+
+* Pembayaran gagal
+* Instruksi bantuan
+
+---
+
+## 14. Validasi Form
+
+### Frontend
+
+* Validasi email
+* Validasi nomor WhatsApp
+* Validasi field wajib
+* Validasi ukuran file
+
+### Backend
+
+* Validasi kategori
+* Validasi kuota
+* Validasi nominal
+* Validasi status pendaftaran
+
+---
+
+## 15. Aturan Bisnis
+
+1. Peserta resmi terdaftar hanya setelah pembayaran berhasil.
+2. Status pembayaran hanya berasal dari webhook payment gateway.
+3. Data peserta tetap tersimpan walaupun belum membayar.
+4. Email konfirmasi hanya dikirim setelah status `PAID`.
+5. Biaya admin payment gateway ditanggung peserta.
+6. Sistem menggunakan **Opsi B — Biaya Admin Dinamis Berdasarkan Metode Pembayaran**.
+7. `admin_fee` dihitung dari konfigurasi metode pembayaran yang aktif saat invoice dibuat.
+8. `total_amount` wajib sama dengan `base_amount + admin_fee`.
+9. Payment link/invoice wajib dibuat menggunakan nominal `total_amount`, bukan hanya `base_amount`.
+10. Backend wajib memvalidasi nominal pembayaran dari webhook terhadap `total_amount`.
+11. Panitia melakukan verifikasi lanjutan jika diperlukan.
+
+---
+
+## 16. Payment Gateway Requirement
+
+Sistem harus dapat:
+
+1. Membuat transaksi pembayaran.
+2. Membuat payment link.
+3. Menerima webhook.
+4. Memverifikasi webhook.
+5. Mengupdate status pembayaran.
+6. Menyimpan metode pembayaran.
+7. Menyimpan waktu pembayaran.
+8. Mengambil atau menyimpan konfigurasi biaya admin per metode pembayaran.
+9. Menghitung `admin_fee` berdasarkan metode pembayaran yang dipilih peserta.
+10. Membuat payment link/invoice dengan nominal `total_amount`.
+11. Menyimpan rincian `base_amount`, `admin_fee`, dan `total_amount`.
+
+---
+
+## 17. Email Konfirmasi
+
+Contoh email:
+
+```text
+Halo [Nama Ketua],
+
+Terima kasih telah mendaftar pada [Nama Lomba].
+
+Pendaftaran Anda telah berhasil dikonfirmasi.
+
+ID Pendaftaran: [REG-0001]
+Nama Tim: [Nama Tim]
+Kategori: [Kategori]
+Status Pembayaran: PAID
+
+Silakan simpan email ini sebagai bukti pendaftaran.
+
+Terima kasih.
+Panitia [Nama Lomba]
+```
+
+---
+
+## 18. Keamanan
+
+1. API key tidak boleh berada di frontend.
+2. Webhook wajib diverifikasi.
+3. Spreadsheet tidak boleh publik.
+4. Validasi dilakukan di frontend dan backend.
+5. Status PAID tidak boleh diubah dari frontend.
+
+---
+
+## 19. Error Handling
+
+| Kondisi                  | Respons Sistem     |
+| ------------------------ | ------------------ |
+| Form tidak lengkap       | Tampilkan validasi |
+| Email tidak valid        | Tampilkan error    |
+| Payment gateway error    | Simpan log         |
+| Spreadsheet gagal update | Simpan log         |
+| Webhook tidak valid      | Tolak request      |
+| Nominal webhook tidak sesuai `total_amount` | Tolak update `PAID` dan simpan log |
+| Metode pembayaran tidak aktif | Tampilkan metode lain |
+| Pembayaran expired       | Update status      |
+
+---
+
+## 20. Logging
+
+Sheet tambahan:
+
+```text
+logs
+```
+
+Contoh:
+
+```text
+2026-06-09 | INFO | CREATE_REGISTRATION | ORD-001 | Registration created
+2026-06-09 | INFO | PAYMENT_PAID | ORD-001 | Payment confirmed
+2026-06-09 | ERROR | SEND_EMAIL | ORD-001 | Failed to send email
+```
+
+---
+
+## 21. Acceptance Criteria
+
+1. Form dapat disubmit.
+2. Data tersimpan ke Spreadsheet.
+3. Payment link berhasil dibuat.
+4. Webhook berhasil diterima.
+5. Status pembayaran otomatis berubah.
+6. Email konfirmasi terkirim.
+7. Peserta dapat memilih metode pembayaran sebelum invoice dibuat.
+8. Sistem menampilkan `base_amount`, `admin_fee`, dan `total_amount` secara transparan.
+9. Payment link/invoice dibuat menggunakan nominal `total_amount`.
+10. Webhook pembayaran memvalidasi nominal terhadap `total_amount`.
+
+---
+
+## 22. MVP Tahap 1
+
+1. Form pendaftaran.
+2. Simpan ke Spreadsheet.
+3. Generate ID.
+4. Pilihan metode pembayaran dengan biaya admin dinamis.
+5. Payment link dengan nominal `total_amount`.
+6. Webhook pembayaran.
+7. Update status.
+8. Email konfirmasi.
+
+---
+
+## 23. Pengembangan Tahap Berikutnya
+
+1. Dashboard admin.
+2. Login panitia.
+3. WhatsApp notification.
+4. Upload dokumen.
+5. QR Check-in.
+6. Voucher diskon.
+7. Reminder pembayaran.
+8. Sertifikat otomatis.
+
+---
+
+## 24. Risiko dan Mitigasi
+
+| Risiko            | Mitigasi             |
+| ----------------- | -------------------- |
+| Apps Script limit | Migrasi ke Node.js   |
+| Webhook gagal     | Retry mechanism      |
+| Spreadsheet besar | Migrasi database     |
+| Email spam        | Gunakan domain resmi |
+| Konfigurasi biaya admin berubah | Simpan snapshot `admin_fee_type`, `admin_fee_rate`, dan `admin_fee_fixed` per transaksi |
+| Selisih pembulatan biaya admin | Gunakan aturan pembulatan konsisten dan validasi `total_amount` |
+| Peserta memilih metode pembayaran tidak tersedia | Nonaktifkan metode tersebut dan tampilkan alternatif |
+
+---
+
+## 25. Kesimpulan
+
+Sistem pendaftaran lomba ini dirancang untuk mengotomatisasi proses registrasi dan pembayaran peserta dengan biaya implementasi yang rendah serta mudah dikelola oleh panitia.
+
+Stack yang direkomendasikan:
+
+```text
+Frontend : Next.js
+Backend  : Google Apps Script / Next.js API
+Database : Google Spreadsheet
+Payment  : Midtrans / Xendit
+Email    : Gmail API / Resend
+```
+
+Dengan pendekatan ini, peserta dapat mendaftar dan membayar secara mandiri, biaya admin payment gateway ditanggung peserta secara transparan berdasarkan metode pembayaran yang dipilih, sementara panitia cukup memonitor seluruh proses melalui Google Spreadsheet tanpa memerlukan dashboard admin khusus pada tahap awal.
