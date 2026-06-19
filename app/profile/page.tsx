@@ -1,30 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
-
-// Mock registration history based on mock user
-const MOCK_REGISTRATIONS = [
-  {
-    registration_id: "REG-BOC-2026-00042",
-    category: "Logika",
-    status_payment: "PAID",
-    status_participant: "VERIFIED",
-    created_at: "2026-08-05",
-  },
-  {
-    registration_id: "REG-BOC-2025-00118",
-    category: "Pengetahuan Umum",
-    status_payment: "PAID",
-    status_participant: "VERIFIED",
-    created_at: "2025-08-15",
-  },
-];
+import { getUserByEmail, getRegistrationsByEmail, type RegistrationHistoryItem } from "@/lib/api/boc-api";
 
 export default function ProfilePage() {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
+
+  // Real data from Apps Script
+  const [registrations, setRegistrations] = useState<RegistrationHistoryItem[]>([]);
+  const [userData, setUserData] = useState<{ whatsapp: string; user_id: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -32,9 +21,46 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, router]);
 
+  // Fetch data from backend
+  useEffect(() => {
+    if (!isAuthenticated || !user?.email) return;
+    const email = user.email;
+
+    console.log("[Profile] Fetching data for email:", email);
+
+    let cancelled = false;
+    async function load() {
+      try {
+        console.log("[Profile] Calling getUserByEmail...");
+        const userInfo = await getUserByEmail(email);
+        console.log("[Profile] getUserByEmail result:", userInfo);
+
+        console.log("[Profile] Calling getRegistrationsByEmail...");
+        const regs = await getRegistrationsByEmail(email);
+        console.log("[Profile] getRegistrationsByEmail result:", regs);
+
+        if (!cancelled) {
+          if (userInfo) {
+            setUserData({ whatsapp: userInfo.whatsapp, user_id: userInfo.user_id });
+          }
+          setRegistrations(regs);
+        }
+      } catch (err) {
+        console.error("[Profile] Error fetching data:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!isAuthenticated || !user) {
     return null;
   }
+
+  const paidCount = registrations.filter((r) => r.payment_status === "PAID").length;
+  const pendingCount = registrations.filter((r) => r.payment_status !== "PAID").length;
 
   return (
     <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100 antialiased">
@@ -68,6 +94,9 @@ export default function ProfilePage() {
             <div className="text-center sm:text-left">
               <h2 className="text-xl md:text-2xl font-bold text-white">{user.name}</h2>
               <p className="text-sm text-zinc-400 mt-1">{user.email}</p>
+              {userData?.user_id && (
+                <p className="text-xs text-zinc-500 mt-0.5">ID: {userData.user_id}</p>
+              )}
               <div className="flex flex-wrap justify-center sm:justify-start gap-3 mt-3">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-semibold">
                   <span className="relative flex h-1.5 w-1.5">
@@ -101,8 +130,24 @@ export default function ProfilePage() {
                 <p className="text-white font-semibold mt-0.5">{user.email}</p>
               </div>
               <div>
-                <span className="text-zinc-500 text-xs">Instansi</span>
-                <p className="text-white font-semibold mt-0.5">{user.institution}</p>
+                <span className="text-zinc-500 text-xs">WhatsApp</span>
+                <p className="text-zinc-400 font-semibold mt-0.5">
+                  {loading ? (
+                    <span className="text-zinc-600">Memuat...</span>
+                  ) : userData?.whatsapp || (
+                    <span className="text-zinc-600">—</span>
+                  )}
+                </p>
+              </div>
+              <div>
+                <span className="text-zinc-500 text-xs">User ID</span>
+                <p className="text-zinc-400 font-semibold mt-0.5 text-[11px]">
+                  {loading ? (
+                    <span className="text-zinc-600">Memuat...</span>
+                  ) : userData?.user_id || (
+                    <span className="text-zinc-600">—</span>
+                  )}
+                </p>
               </div>
               <div>
                 <span className="text-zinc-500 text-xs">Status Akun</span>
@@ -127,13 +172,20 @@ export default function ProfilePage() {
               Riwayat Pendaftaran
             </h3>
 
-            {MOCK_REGISTRATIONS.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <svg className="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              </div>
+            ) : registrations.length === 0 ? (
               <p className="text-sm text-zinc-500 text-center py-8">
                 Belum ada riwayat pendaftaran.
               </p>
             ) : (
               <div className="space-y-3">
-                {MOCK_REGISTRATIONS.map((reg) => (
+                {registrations.map((reg) => (
                   <div
                     key={reg.registration_id}
                     className="p-4 rounded-xl border border-zinc-800/60 bg-zinc-950/50 hover:border-amber-500/20 transition-colors"
@@ -142,25 +194,33 @@ export default function ProfilePage() {
                       <div>
                         <p className="text-sm font-bold text-white">{reg.registration_id}</p>
                         <div className="flex flex-wrap gap-2 mt-1.5">
-                          <span className="text-xs text-zinc-400">{reg.category}</span>
+                          <span className="text-xs text-zinc-400">{reg.kategori_lomba}</span>
                           <span className="text-xs text-zinc-600">•</span>
-                          <span className="text-xs text-zinc-500">{reg.created_at}</span>
+                          <span className="text-xs text-zinc-500">
+                            {new Date(reg.created_at).toLocaleDateString("id-ID", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          reg.status_payment === "PAID"
+                          reg.payment_status === "PAID"
                             ? "bg-green-500/10 border border-green-500/20 text-green-400"
                             : "bg-amber-500/10 border border-amber-500/20 text-amber-400"
                         }`}>
-                          {reg.status_payment === "PAID" ? "✓ Lunas" : "Pending"}
+                          {reg.payment_status === "PAID" ? "✓ Lunas" : reg.payment_status === "PENDING_PAYMENT" ? "Menunggu" : reg.payment_status}
                         </span>
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          reg.status_participant === "VERIFIED"
+                          reg.participant_status === "VERIFIED"
                             ? "bg-cyan-500/10 border border-cyan-500/20 text-cyan-400"
+                            : reg.participant_status === "REGISTERED"
+                            ? "bg-blue-500/10 border border-blue-500/20 text-blue-400"
                             : "bg-zinc-800 text-zinc-400"
                         }`}>
-                          {reg.status_participant === "VERIFIED" ? "Terverifikasi" : "Menunggu"}
+                          {reg.participant_status === "VERIFIED" ? "Terverifikasi" : reg.participant_status === "REGISTERED" ? "Terdaftar" : reg.participant_status}
                         </span>
                       </div>
                     </div>
@@ -178,15 +238,11 @@ export default function ProfilePage() {
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="p-3 rounded-xl border border-green-500/10 bg-green-500/5 text-center">
-                <p className="text-2xl font-bold text-green-400">
-                  {MOCK_REGISTRATIONS.filter((r) => r.status_payment === "PAID").length}
-                </p>
+                <p className="text-2xl font-bold text-green-400">{paidCount}</p>
                 <p className="text-xs text-zinc-500 mt-1">Lunas</p>
               </div>
               <div className="p-3 rounded-xl border border-amber-500/10 bg-amber-500/5 text-center">
-                <p className="text-2xl font-bold text-amber-400">
-                  {MOCK_REGISTRATIONS.filter((r) => r.status_payment !== "PAID").length}
-                </p>
+                <p className="text-2xl font-bold text-amber-400">{pendingCount}</p>
                 <p className="text-xs text-zinc-500 mt-1">Pending</p>
               </div>
             </div>

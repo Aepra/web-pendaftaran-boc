@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Battle of Champions Season III — SmartSolve: Unlock Your Mind, Ignite The Future",
   description: "Kompetisi akademik untuk siswa SMA se-Sulawesi Selatan. Matematika, logika, pemecahan masalah, dan kerja sama tim dalam atmosfer investigasi yang seru.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

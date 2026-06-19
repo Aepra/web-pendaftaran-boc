@@ -1,15 +1,16 @@
-"use client";
-
-import type { ReactNode } from "react";
+import { ReactNode } from "react";
+import { SessionProvider } from "next-auth/react";
 import { AuthProvider } from "@/contexts/auth-context";
 import { RegistrationProvider } from "@/contexts/registration-context";
 
 export default function Providers({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider>
-      <RegistrationProvider>
-        {children}
-      </RegistrationProvider>
-    </AuthProvider>
+    <SessionProvider>
+      <AuthProvider>
+        <RegistrationProvider>
+          {children}
+        </RegistrationProvider>
+      </AuthProvider>
+    </SessionProvider>
   );
 }

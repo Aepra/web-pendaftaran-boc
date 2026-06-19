@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { syncGoogleUser } from "@/lib/api/boc-api";
 
 export interface MockUser {
   id: string;
@@ -19,28 +21,46 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const MOCK_USER: MockUser = {
-  id: "google-oauth2-117003812345678900000",
-  name: "Alexandra Firmansyah",
-  email: "alexandra.firmansyah@gmail.com",
-  image: "https://lh3.googleusercontent.com/a/ACg8ocJxHfGj4bN9kLmPqRsTuVwXyZ0ABCDEFGHijklm=s96-c",
-  institution: "Universitas Indonesia",
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(null);
+  const { data: session, status } = useSession();
 
-  const login = useCallback(() => {
-    // Simulate Google OAuth popup/redirect
-    setUser(MOCK_USER);
-  }, []);
+  // Sync user to Apps Script sheet when Google login succeeds
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.email) {
+      syncGoogleUser({
+        name: session.user.name || "",
+        email: session.user.email,
+      });
+    }
+  }, [status, session?.user?.email, session?.user?.name]);
 
-  const logout = useCallback(() => {
-    setUser(null);
-  }, []);
+  const user: MockUser | null = session?.user
+    ? {
+        id: (session.user as any).id || session.user.email || "",
+        name: session.user.name || "",
+        email: session.user.email || "",
+        image: session.user.image || "",
+        institution: "",
+      }
+    : null;
+
+  const login = () => {
+    signIn("google", { redirectTo: "/register" });
+  };
+
+  const logout = () => {
+    signOut({ redirectTo: "/" });
+  };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: status === "authenticated",
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -16,7 +16,6 @@ export default function LoginPage() {
 
   const handleLogin = () => {
     login();
-    router.push("/register");
   };
 
   return (
@@ -76,7 +75,7 @@ export default function LoginPage() {
           </button>
 
           <p className="text-xs text-zinc-600 text-center mt-6">
-            Autentikasi Google akan diintegrasikan setelah MVP
+            Masuk menggunakan akun Google Anda
           </p>
         </div>
 

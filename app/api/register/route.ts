@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
-const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyuJsCBgZJ1CJx9lrznkuR69rrMxbWWkYGIeLn-k6oASYYj5WqJGiXIonTEptgOiUMl/exec";
+const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log("[API] Payload:", body);
+    const action = body.action;
+    console.log("[API] Action:", action, "Payload:", body);
 
     const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",

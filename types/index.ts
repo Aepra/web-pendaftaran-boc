@@ -1,3 +1,22 @@
+// ======================
+// Master Data (from Apps Script)
+// ======================
+
+export interface CategoryItem {
+  code: string;
+  name: string;
+  fee: number;
+}
+
+export interface PaymentMethodItem {
+  code: string;
+  name: string;
+}
+
+// ======================
+// Registration Form
+// ======================
+
 export interface RegistrationFormData {
   teamName: string;
   leaderName: string;
@@ -5,27 +24,17 @@ export interface RegistrationFormData {
   whatsapp: string;
   institution: string;
   category: string;
-  paymentMethod: string; // "VA" | "QRIS" | "EWALLET" | "CREDIT_CARD"
+  paymentMethod: string;
   memberCount: number;
   memberNames: string;
   notes: string;
 }
 
-export interface RegistrationResponse {
-  status: "success" | "error";
-  message?: string;
-  data?: {
-    registration_id: string;
-    order_id: string;
-    base_amount: number;
-    admin_fee: number;
-    total_amount: number;
-    payment_url?: string;
-  };
-}
+// ======================
+// Apps Script Request Payload
+// ======================
 
-/** Payload sent to Google Apps Script (PRD Section 4) */
-export interface AppsScriptPayload {
+export interface RegisterPayload {
   action: "register";
   nama_tim: string;
   nama_ketua: string;
@@ -37,4 +46,46 @@ export interface AppsScriptPayload {
   jumlah_anggota: number;
   nama_anggota: string;
   notes: string;
+}
+
+export interface GetCategoriesPayload {
+  action: "get_categories";
+}
+
+export interface GetPaymentMethodsPayload {
+  action: "get_payment_methods";
+}
+
+// ======================
+// Apps Script Response
+// ======================
+
+export interface BocApiSuccess<T> {
+  status: "success";
+  data: T;
+}
+
+export interface BocApiError {
+  status: "error";
+  message: string;
+}
+
+export type BocApiResponse<T> = BocApiSuccess<T> | BocApiError;
+
+// ======================
+// Registration Response Data
+// ======================
+
+export interface RegistrationData {
+  registration_id: string;
+  order_id: string;
+  total_amount: number;
+  payment_url: string;
+  payment_flow_stage: "REGISTERED" | "SKIPPED_PAYMENT";
+}
+
+export interface RegistrationResponse {
+  status: "success" | "error";
+  message?: string;
+  data?: RegistrationData;
 }
