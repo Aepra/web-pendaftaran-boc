@@ -3,51 +3,161 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useRegistration } from "@/contexts/registration-context";
-import { useEffect, useState, useMemo } from "react";
-import type { RegistrationFormData, RegistrationData } from "@/types";
-import {
-  getCategories,
-  getPaymentMethods,
-  registerParticipant,
-  isMidtransCode,
-  isOrangDalamCode,
-  isNormalPaymentCode,
-  type CategoryDTO,
-  type PaymentMethodDTO,
-} from "@/lib/api/boc-api";
+import { useEffect, useState } from "react";
+import type { RegistrationFormData } from "@/types";
+import { registerParticipant } from "@/lib/api/boc-api";
+import { formatRupiah } from "@/lib/utils";
+import Image from "next/image";
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
+const BIAYA_PENDAFTARAN = 100000;
+
+// ======================
+// Helper: Image Compression
+// ======================
+const compressImage = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX = 500; // Diperkecil dari 800 → lebih ringan di jaringan
+        let { width, height } = img;
+        if (width > height) {
+          if (width > MAX) { height *= MAX / width; width = MAX; }
+        } else {
+          if (height > MAX) { width *= MAX / height; height = MAX; }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d")?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.5)); // Quality 0.7 → 0.5
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+
+// ======================
+// Sub-komponen: Label wajib
+// ======================
+function Req() {
+  return <span className="text-[#700702]"> *</span>;
+}
+
+// ======================
+// Sub-komponen: Badge Upload
+// ======================
+function UploadBadge({ value }: { value: string }) {
+  if (!value) return null;
+  return <span className="text-xs font-bold text-emerald-600 mt-1.5 block">✓ Tersimpan</span>;
+}
+
+// ======================
+// Sub-komponen: Modal Preview Gambar
+// ======================
+function ImageModal({ src, onClose }: { src: string; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  const handleDownload = () => {
+    const a = document.createElement("a");
+    a.href = src;
+    a.download = "QRIS_BoC2026.jpeg";
+    a.click();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-lg w-full bg-white rounded-2xl overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+          <p className="font-bold text-[#002D61]">QRIS Pembayaran BoC 2026</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownload}
+              className="px-3 py-1.5 text-xs font-bold bg-[#002D61] text-white rounded-lg hover:bg-[#002D61]/90 transition flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+              aria-label="Tutup"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="p-4 flex items-center justify-center bg-gray-50">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="QRIS BoC 2026" className="max-w-full max-h-[70vh] object-contain rounded-lg" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================
+// Main Page
+// ======================
+const EMPTY_FORM: RegistrationFormData = {
+  nama_tim: "",
+  institution: "",
+  memberCount: 1,
+  leaderName: "",
+  email: "",
+  whatsapp: "",
+  nama_anggota_1: "",
+  whatsapp_anggota_1: "",
+  nama_anggota_2: "",
+  whatsapp_anggota_2: "",
+  notes: "",
+  foto_ketua: "",
+  kartu_pelajar_ketua: "",
+  bukti_follow_ketua: "",
+  foto_anggota_1: "",
+  kartu_pelajar_anggota_1: "",
+  bukti_follow_anggota_1: "",
+  foto_anggota_2: "",
+  kartu_pelajar_anggota_2: "",
+  bukti_follow_anggota_2: "",
+  bukti_bayar: "",
+};
 
 export default function RegisterPage() {
   const { isAuthenticated, user } = useAuth();
-  const { setData, clearData } = useRegistration();
+  const { setData } = useRegistration();
   const router = useRouter();
 
-  // Master data from Apps Script
-  const [categories, setCategories] = useState<CategoryDTO[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodDTO[]>([]);
-  const [masterLoading, setMasterLoading] = useState(true);
-  const [masterError, setMasterError] = useState("");
-
-  // Pre-fill from Google session
   const [initialized, setInitialized] = useState(false);
+  const [d, sd] = useState<RegistrationFormData>(EMPTY_FORM);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [qrisModalOpen, setQrisModalOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; label: string } | null>(null);
 
-  // Form state
-  const [d, sd] = useState<RegistrationFormData>({
-    teamName: "",
-    leaderName: user?.name || "",
-    email: user?.email || "",
-    whatsapp: "",
-    institution: "",
-    category: "",
-    paymentMethod: "",
-    memberCount: 1,
-    memberNames: "",
-    notes: "",
-  });
+  // Redirect jika belum login
+  useEffect(() => {
+    if (!isAuthenticated) router.replace("/login");
+  }, [isAuthenticated, router]);
 
-  // Sync initial values after user is loaded
+  // Isi default dari sesi user
   useEffect(() => {
     if (!initialized && user) {
       sd((prev) => ({
@@ -58,409 +168,632 @@ export default function RegisterPage() {
       setInitialized(true);
     }
   }, [user, initialized]);
-  const [st, sst] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [em, sem] = useState("");
 
-  // Determine payment method category on the fly
-  const selectedMethod = d.paymentMethod;
-  const methodCategory = useMemo(() => {
-    if (!selectedMethod) return null;
-    if (isOrangDalamCode(selectedMethod)) return "orang_dalam";
-    if (isMidtransCode(selectedMethod)) return "midtrans";
-    if (isNormalPaymentCode(selectedMethod)) return "normal";
-    return null;
-  }, [selectedMethod]);
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace("/login");
-    }
-  }, [isAuthenticated, router]);
-
-  // Fetch master data on mount
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const [cats, pms] = await Promise.all([getCategories(), getPaymentMethods()]);
-        if (!cancelled) {
-          setCategories(cats);
-          setPaymentMethods(pms);
-          setMasterLoading(false);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setMasterError(err instanceof Error ? err.message : "Gagal memuat data.");
-          setMasterLoading(false);
-        }
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  if (!isAuthenticated) return null;
 
   // ======================
-  // Price preview (from backend categories)
-  // NOTE: This hook MUST be before any early return to maintain
-  // a consistent hook call count across all renders.
+  // Handlers
   // ======================
-
-  const selectedCategoryObj = useMemo(() => {
-    if (!d.category) return null;
-    return categories.find((c) => c.code === d.category || c.name === d.category) ?? null;
-  }, [d.category, categories]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Loading state for master data
-  if (masterLoading) {
-    return (
-      <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100 antialiased flex items-center justify-center">
-        <div className="text-center">
-          <svg className="animate-spin h-10 w-10 text-amber-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          <p className="text-zinc-400">Memuat data pendaftaran...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state for master data
-  if (masterError) {
-    return (
-      <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100 antialiased flex items-center justify-center px-4">
-        <div className="max-w-md text-center">
-          <div className="p-6 rounded-2xl border border-red-500/20 bg-red-500/5 mb-6">
-            <p className="text-red-400 font-semibold mb-2">Gagal memuat data</p>
-            <p className="text-sm text-zinc-400">{masterError}</p>
-          </div>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl transition"
-          >
-            Coba Lagi
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ======================
-  // Form handlers
-  // ======================
-
-  const hc = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const t = e.target;
-    sd((pr) => ({ ...pr, [t.name]: t.type === "number" ? (t.value === "" ? 0 : +t.value) : t.value }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    sd((prev) => ({
+      ...prev,
+      [name]: name === "memberCount" ? Number(value) : value,
+    }));
   };
 
-  const vl = (): string | null => {
-    if (!d.teamName || !d.leaderName || !d.email || !d.whatsapp || !d.institution || !d.category || !d.paymentMethod)
-      return "Semua field wajib harus diisi.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return "Format email tidak valid.";
-    if (!/^(\+62|62|08)\d{7,14}$/.test(d.whatsapp.replace(/[\s\-()]/g, ""))) return "WhatsApp tidak valid.";
-    if (d.memberCount < 1 || d.memberCount > 5) return "Anggota 1-5.";
-    return null;
-  };
-
-  const sb = async (e: React.FormEvent) => {
-    e.preventDefault();
-    sem("");
-
-    const ve = vl();
-    if (ve) {
-      sem(ve);
-      sst("error");
+  const handleFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: keyof RegistrationFormData
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Hanya file gambar (JPG/PNG) yang diperbolehkan.");
+      e.target.value = "";
       return;
     }
-
-    // BLOCK: Midtrans methods are coming soon
-    if (methodCategory === "midtrans") {
-      router.push("/payment?status=coming_soon");
-      return;
-    }
-
-    // BLOCK: ORANG_DALAM → bypass payment, show success
-    if (methodCategory === "orang_dalam") {
-      // We need to still submit to backend so it registers
-      sst("loading");
-      try {
-        const result = await registerParticipant({
-          nama_tim: d.teamName,
-          nama_ketua: d.leaderName,
-          email: d.email,
-          whatsapp: d.whatsapp,
-          instansi: d.institution,
-          kategori_lomba: d.category,
-          payment_method_code: d.paymentMethod,
-          jumlah_anggota: d.memberCount,
-          nama_anggota: d.memberNames,
-          notes: d.notes,
-        });
-
-        if (result.status === "success" && result.data) {
-          setData(result.data);
-          // ORANG_DALAM → SKIPPED_PAYMENT → redirect langsung
-          router.push("/payment?status=bypass");
-        } else {
-          sem(result.message || "Gagal mendaftar.");
-          sst("error");
-        }
-      } catch (err) {
-        sem(err instanceof Error ? err.message : "Terjadi kesalahan jaringan.");
-        sst("error");
-      }
-      return;
-    }
-
-    // NORMAL FLOW: submit to backend, go to payment page
-    sst("loading");
     try {
+      setSubmitStatus("loading");
+      const base64 = await compressImage(file);
+      sd((prev) => ({ ...prev, [fieldName]: base64 }));
+    } catch {
+      alert("Gagal memproses gambar. Coba gambar lain.");
+      e.target.value = "";
+    } finally {
+      setSubmitStatus("idle");
+    }
+  };
+
+  // ======================
+  // Validasi
+  // ======================
+  const validate = (): string | null => {
+    if (!d.nama_tim.trim()) return "Nama tim wajib diisi.";
+    if (!d.institution.trim()) return "Asal sekolah wajib diisi.";
+    if (!d.leaderName.trim()) return "Nama ketua wajib diisi.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return "Format email tidak valid.";
+    if (!/^(\+62|62|08)\d{7,14}$/.test(d.whatsapp.replace(/[\s\-()]/g, "")))
+      return "Nomor WhatsApp tidak valid (gunakan 08... atau 628...).";
+    if (d.memberCount < 1 || d.memberCount > 3)
+      return "Jumlah anggota (termasuk ketua) harus 1–3 orang.";
+
+    if (!d.foto_ketua) return "Pas foto ketua wajib diunggah.";
+    if (!d.kartu_pelajar_ketua) return "Kartu pelajar ketua wajib diunggah.";
+    if (!d.bukti_follow_ketua) return "Bukti follow Instagram ketua wajib diunggah.";
+
+    if (d.memberCount >= 2) {
+      if (!d.nama_anggota_1.trim() || !d.whatsapp_anggota_1.trim())
+        return "Nama dan WhatsApp Anggota 1 wajib diisi.";
+      if (!d.foto_anggota_1 || !d.kartu_pelajar_anggota_1 || !d.bukti_follow_anggota_1)
+        return "Berkas Anggota 1 (Foto, Kartu Pelajar, Bukti Follow) wajib dilengkapi.";
+    }
+
+    if (d.memberCount === 3) {
+      if (!d.nama_anggota_2.trim() || !d.whatsapp_anggota_2.trim())
+        return "Nama dan WhatsApp Anggota 2 wajib diisi.";
+      if (!d.foto_anggota_2 || !d.kartu_pelajar_anggota_2 || !d.bukti_follow_anggota_2)
+        return "Berkas Anggota 2 (Foto, Kartu Pelajar, Bukti Follow) wajib dilengkapi.";
+    }
+
+    if (!d.bukti_bayar) return "Bukti pembayaran QRIS wajib diunggah.";
+
+    return null;
+  };
+
+  // ======================
+  // Submit
+  // ======================
+  // Upload satu file ke Google Drive via GAS, kembalikan URL
+  const uploadFileToDrive = async (base64: string, filename: string): Promise<string> => {
+    if (!base64) return "";
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "upload_file", filename, data: base64 }),
+    });
+    const json = await res.json();
+    if (json.status === "success" && json.data?.url) return json.data.url;
+    throw new Error("Gagal upload file: " + filename);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    const err = validate();
+    if (err) {
+      setErrorMsg(err);
+      setSubmitStatus("error");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    setSubmitStatus("loading");
+    setUploadProgress(null);
+
+    try {
+      // ================================================================
+      // FASE 1: Upload setiap gambar satu per satu ke Google Drive
+      // ================================================================
+      const prefix = d.nama_tim.replace(/[^a-zA-Z0-9]/g, "_");
+
+      // Buat daftar file yang perlu diupload
+      type FileUpload = { key: string; base64: string; label: string };
+      const filesToUpload: FileUpload[] = [
+        { key: "foto_ketua",           base64: d.foto_ketua,           label: "Foto Ketua" },
+        { key: "kartu_pelajar_ketua",  base64: d.kartu_pelajar_ketua,  label: "Kartu Pelajar Ketua" },
+        { key: "bukti_follow_ketua",   base64: d.bukti_follow_ketua,   label: "Bukti Follow Ketua" },
+        { key: "bukti_bayar",          base64: d.bukti_bayar,          label: "Bukti Pembayaran" },
+        ...(d.memberCount >= 2 ? [
+          { key: "foto_anggota_1",          base64: d.foto_anggota_1,          label: "Foto Anggota 1" },
+          { key: "kartu_pelajar_anggota_1", base64: d.kartu_pelajar_anggota_1, label: "Kartu Pelajar Anggota 1" },
+          { key: "bukti_follow_anggota_1",  base64: d.bukti_follow_anggota_1,  label: "Bukti Follow Anggota 1" },
+        ] : []),
+        ...(d.memberCount === 3 ? [
+          { key: "foto_anggota_2",          base64: d.foto_anggota_2,          label: "Foto Anggota 2" },
+          { key: "kartu_pelajar_anggota_2", base64: d.kartu_pelajar_anggota_2, label: "Kartu Pelajar Anggota 2" },
+          { key: "bukti_follow_anggota_2",  base64: d.bukti_follow_anggota_2,  label: "Bukti Follow Anggota 2" },
+        ] : []),
+      ];
+
+      const uploadedUrls: Record<string, string> = {};
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const f = filesToUpload[i];
+        setUploadProgress({ current: i + 1, total: filesToUpload.length, label: f.label });
+        uploadedUrls[f.key] = await uploadFileToDrive(f.base64, `${prefix}_${f.label}.jpg`);
+      }
+
+      // ================================================================
+      // FASE 2: Submit data teks + URL (ringan, cepat)
+      // ================================================================
+      setUploadProgress({ current: filesToUpload.length, total: filesToUpload.length, label: "Menyimpan data..." });
+
       const result = await registerParticipant({
-        nama_tim: d.teamName,
+        nama_tim: d.nama_tim,
         nama_ketua: d.leaderName,
         email: d.email,
         whatsapp: d.whatsapp,
         instansi: d.institution,
-        kategori_lomba: d.category,
-        payment_method_code: d.paymentMethod,
         jumlah_anggota: d.memberCount,
-        nama_anggota: d.memberNames,
+        nama_anggota_1: d.memberCount >= 2 ? d.nama_anggota_1 : "",
+        whatsapp_anggota_1: d.memberCount >= 2 ? d.whatsapp_anggota_1 : "",
+        nama_anggota_2: d.memberCount === 3 ? d.nama_anggota_2 : "",
+        whatsapp_anggota_2: d.memberCount === 3 ? d.whatsapp_anggota_2 : "",
         notes: d.notes,
+        foto_ketua:               uploadedUrls["foto_ketua"] || "",
+        kartu_pelajar_ketua:      uploadedUrls["kartu_pelajar_ketua"] || "",
+        bukti_follow_ketua:       uploadedUrls["bukti_follow_ketua"] || "",
+        foto_anggota_1:           uploadedUrls["foto_anggota_1"] || "",
+        kartu_pelajar_anggota_1:  uploadedUrls["kartu_pelajar_anggota_1"] || "",
+        bukti_follow_anggota_1:   uploadedUrls["bukti_follow_anggota_1"] || "",
+        foto_anggota_2:           uploadedUrls["foto_anggota_2"] || "",
+        kartu_pelajar_anggota_2:  uploadedUrls["kartu_pelajar_anggota_2"] || "",
+        bukti_follow_anggota_2:   uploadedUrls["bukti_follow_anggota_2"] || "",
+        bukti_bayar:              uploadedUrls["bukti_bayar"] || "",
       });
+
+      setUploadProgress(null);
 
       if (result.status === "success" && result.data) {
         setData(result.data);
-        router.push("/payment");
+        setSubmitStatus("success");
+        router.push("/profile");
       } else {
-        sem(result.message || "Gagal menyimpan data.");
-        sst("error");
+        setErrorMsg(result.message || "Gagal menyimpan data pendaftaran.");
+        setSubmitStatus("error");
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } catch (err) {
-      sem(err instanceof Error ? err.message : "Terjadi kesalahan jaringan.");
-      sst("error");
+      setUploadProgress(null);
+      setErrorMsg(err instanceof Error ? err.message : "Terjadi kesalahan jaringan.");
+      setSubmitStatus("error");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   // ======================
-  // UI constants
+  // Style helpers
   // ======================
-
-  const ic =
-    "w-full p-3 border border-zinc-700/60 rounded-xl bg-zinc-900/60 text-zinc-100 placeholder:text-zinc-500 focus:ring-2 focus:ring-amber-500/50 focus:outline-none disabled:opacity-40 transition";
-  const lc = "block text-sm font-semibold text-zinc-300 mb-1.5";
-  const ds = st === "loading";
+  const isLoading = submitStatus === "loading";
+  const inputCls =
+    "w-full p-3.5 border border-[#002D61]/15 rounded-xl bg-white text-[#002D61] placeholder:text-[#002D61]/30 focus:ring-2 focus:ring-[#700702]/40 focus:border-[#700702] focus:outline-none disabled:opacity-40 transition shadow-sm text-sm";
+  const fileCls =
+    "block w-full text-sm text-[#002D61]/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#002D61]/8 file:text-[#002D61] hover:file:bg-[#002D61]/15 file:transition cursor-pointer border border-[#002D61]/10 p-1.5 rounded-xl bg-white";
+  const labelCls = "block text-sm font-extrabold text-[#002D61] mb-1.5";
+  const sectionCls =
+    "bg-white/90 backdrop-blur-md border border-[#002D61]/10 rounded-3xl p-6 md:p-8 shadow-lg shadow-[#002D61]/5";
+  const sectionHeaderCls = "flex items-center gap-3 mb-6 pb-4 border-b border-[#002D61]/8";
 
   return (
-    <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100 antialiased">
-      {/* Ambient glow */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-amber-400/5 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-[#FFF6E9] font-sans text-[#002D61] antialiased">
+      {/* Modal QRIS */}
+      {qrisModalOpen && (
+        <ImageModal src="/Qriss_Pembayaran.jpeg" onClose={() => setQrisModalOpen(false)} />
+      )}
+
+      {/* Ambient BG */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#700702]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#002D61]/5 rounded-full blur-3xl" />
       </div>
 
-      <main className="relative max-w-6xl mx-auto px-4 py-20 md:py-28">
-        <div className="text-center mb-12">
-          <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-amber-500 mb-4">
-            Registration
+      <main className="relative z-10 max-w-4xl mx-auto px-4 py-12 md:py-20">
+        {/* Page Header */}
+        <div className="text-center mb-10">
+          <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#700702] mb-3 bg-[#700702]/8 px-4 py-1.5 rounded-full border border-[#700702]/15">
+            Registrasi BoC III — Olimpiade
           </span>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.15]">
-            Investigation Registration File
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#002D61] mb-4">
+            Formulir Pendaftaran
           </h1>
-          <p className="text-base sm:text-lg text-zinc-400 mt-4 max-w-xl mx-auto">
-            Isi berkas pendaftaran investigasi Anda dengan data yang valid dan lengkap.
+          <p className="text-[#002D61]/70 max-w-xl mx-auto font-medium">
+            Lengkapi data tim investigasi Anda dan unggah berkas yang diperlukan.
+            Semua berkas dalam format gambar (JPG/PNG).
           </p>
         </div>
 
-        {/* Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Sidebar - Info */}
-          <div className="lg:col-span-2 space-y-5">
-            <div className="p-6 rounded-2xl border border-zinc-800/60 bg-zinc-900/40">
-              <h3 className="text-lg font-bold text-white mb-4 flex gap-2">
-                <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Informasi Kompetisi
-              </h3>
-              <ul className="space-y-3 text-sm">
-                <li className="flex gap-2">
-                  <span className="text-amber-400/70 font-semibold min-w-[80px]">Kategori</span>
-                  <span className="text-zinc-300">
-                    {categories.map((c) => c.name).join(", ")}
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-amber-400/70 font-semibold min-w-[80px]">Anggota</span>
-                  <span className="text-zinc-300">1–5 orang (termasuk ketua)</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-amber-400/70 font-semibold min-w-[80px]">Peserta</span>
-                  <span className="text-zinc-300">Siswa SMA/SMK/MA se-Sulawesi Selatan</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-amber-400/70 font-semibold min-w-[80px]">Hadiah</span>
-                  <span className="text-zinc-300">Total Rp 50 Juta+</span>
-                </li>
-              </ul>
+        {/* Error Banner */}
+        {submitStatus === "error" && errorMsg && (
+          <div className="mb-8 p-5 bg-red-50 border-l-4 border-red-600 text-red-700 rounded-r-xl shadow-sm flex items-start gap-3">
+            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-bold">Gagal Menyimpan</p>
+              <p className="text-sm mt-0.5">{errorMsg}</p>
             </div>
-            <div className="p-6 rounded-2xl border border-zinc-800/60 bg-zinc-900/40">
-              <h3 className="text-lg font-bold text-white mb-4 flex gap-2">
-                <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+
+          {/* === SECTION A: INFORMASI OLIMPIADE === */}
+          <div className={sectionCls}>
+            <div className={sectionHeaderCls}>
+              <div className="w-9 h-9 rounded-full bg-[#700702] text-white flex items-center justify-center font-bold text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Benefit
-              </h3>
-              <ul className="space-y-2 text-sm text-zinc-300">
-                <li className="flex gap-2"><span className="text-amber-400">✓</span> Sertifikat Peserta</li>
-                <li className="flex gap-2"><span className="text-amber-400">✓</span> Total Hadiah Rp 50 Juta+</li>
-                <li className="flex gap-2"><span className="text-amber-400">✓</span> Networking Antar Sekolah</li>
-                <li className="flex gap-2"><span className="text-amber-400">✓</span> Pengalaman Kompetisi Nasional</li>
-              </ul>
+              </div>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Informasi Olimpiade</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: "Jenis Lomba", value: "Olimpiade" },
+                { label: "Biaya Pendaftaran", value: formatRupiah(BIAYA_PENDAFTARAN) + " / Tim" },
+                { label: "Maks. Anggota", value: "3 Orang" },
+                { label: "Pembayaran", value: "QRIS" },
+              ].map((item) => (
+                <div key={item.label} className="p-4 rounded-2xl bg-[#FFF6E9] border border-[#002D61]/10">
+                  <p className="text-[10px] font-bold text-[#002D61]/50 uppercase tracking-wider mb-1">{item.label}</p>
+                  <p className="font-extrabold text-[#002D61] text-sm">{item.value}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Form */}
-          <form onSubmit={sb} className="lg:col-span-3 p-6 md:p-8 rounded-2xl border border-zinc-800/60 bg-zinc-900/40">
-            {st === "error" && em && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm font-medium">
-                {em}
-              </div>
-            )}
-
-            {/* Midtrans coming soon warning */}
-            {methodCategory === "midtrans" && (
-              <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl text-sm font-medium flex items-start gap-3">
-                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          {/* === SECTION B: PEMBAYARAN QRIS === */}
+          <div className={sectionCls}>
+            <div className={sectionHeaderCls}>
+              <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 4h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                 </svg>
-                <div>
-                  <p className="font-semibold">Metode pembayaran ini belum tersedia</p>
-                  <p className="text-amber-400/70 mt-1">
-                    Pembayaran melalui Midtrans akan segera hadir. Silakan pilih metode pembayaran lain atau hubungi panitia.
-                  </p>
-                </div>
               </div>
-            )}
-
-            {/* ORANG_DALAM info */}
-            {methodCategory === "orang_dalam" && (
-              <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-sm font-medium flex items-start gap-3">
-                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="font-semibold">Pendaftaran tanpa pembayaran</p>
-                  <p className="text-green-400/70 mt-1">
-                    Akun ORANG_DALAM tidak dikenakan biaya pendaftaran. Status langsung PAID setelah submit.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-              <div>
-                <label className={lc}>Nama Tim <span className="text-red-400">*</span></label>
-                <input name="teamName" required value={d.teamName} onChange={hc} disabled={ds} className={ic} placeholder="Nama tim investigasi" />
-              </div>
-              <div>
-                <label className={lc}>Nama Ketua <span className="text-red-400">*</span></label>
-                <input name="leaderName" required value={d.leaderName} onChange={hc} disabled={ds} className={ic} placeholder="Lead investigator" />
-              </div>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Pembayaran QRIS</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-              <div>
-                <label className={lc}>Email <span className="text-red-400">*</span></label>
-                <input name="email" type="email" required value={d.email} onChange={hc} disabled={ds} className={ic} placeholder="email@contoh.com" />
+            <div className="grid md:grid-cols-2 gap-8 items-start">
+              {/* QRIS Image */}
+              <div className="flex flex-col items-center">
+                <div className="relative w-full max-w-xs border-2 border-[#002D61]/15 rounded-2xl overflow-hidden shadow-md bg-white p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/Qriss_Pembayaran.jpeg"
+                    alt="QRIS BoC 2026"
+                    className="w-full rounded-xl object-contain"
+                  />
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setQrisModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#002D61]/8 text-[#002D61] hover:bg-[#002D61]/15 border border-[#002D61]/15 transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                    Perbesar QR
+                  </button>
+                  <a
+                    href="/Qriss_Pembayaran.jpeg"
+                    download="QRIS_BoC2026.jpeg"
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#002D61] text-white hover:bg-[#002D61]/90 transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
+                  </a>
+                </div>
               </div>
-              <div>
-                <label className={lc}>WhatsApp <span className="text-red-400">*</span></label>
-                <input name="whatsapp" required value={d.whatsapp} onChange={hc} disabled={ds} className={ic} placeholder="08123456789" />
+
+              {/* Petunjuk & Upload */}
+              <div className="space-y-5">
+                <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200">
+                  <h3 className="font-bold text-emerald-800 mb-2 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Petunjuk Pembayaran
+                  </h3>
+                  <ol className="space-y-2 text-sm text-emerald-700">
+                    <li className="flex gap-2">
+                      <span className="font-bold flex-shrink-0">1.</span>
+                      Scan QRIS di atas menggunakan aplikasi bank atau e-wallet.
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-bold flex-shrink-0">2.</span>
+                      Bayar tepat <strong>{formatRupiah(BIAYA_PENDAFTARAN)}</strong> per tim.
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-bold flex-shrink-0">3.</span>
+                      Screenshot bukti pembayaran dari aplikasi Anda.
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-bold flex-shrink-0">4.</span>
+                      Upload bukti pembayaran di kolom berikut sebelum submit formulir.
+                    </li>
+                  </ol>
+                </div>
+
+                <div>
+                  <label className={labelCls}>
+                    Upload Bukti Pembayaran <Req />
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, "bukti_bayar")}
+                    disabled={isLoading}
+                    className={fileCls}
+                  />
+                  <UploadBadge value={d.bukti_bayar} />
+                  {!d.bukti_bayar && (
+                    <p className="text-xs text-[#700702]/70 mt-1">
+                      Formulir tidak dapat dikirim tanpa bukti pembayaran.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          {/* === SECTION 1: TIM & INSTANSI === */}
+          <div className={sectionCls}>
+            <div className={sectionHeaderCls}>
+              <div className="w-9 h-9 rounded-full bg-[#002D61] text-white flex items-center justify-center font-bold">1</div>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Informasi Tim & Instansi</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className={lc}>Instansi <span className="text-red-400">*</span></label>
-                <input name="institution" required value={d.institution} onChange={hc} disabled={ds} className={ic} placeholder="Sekolah / Kampus / Umum" />
+                <label className={labelCls}>Nama Tim <Req /></label>
+                <input
+                  name="nama_tim"
+                  required
+                  value={d.nama_tim}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  className={inputCls}
+                  placeholder="Misal: Tim Investigator Alpha"
+                />
               </div>
               <div>
-                <label className={lc}>Kategori <span className="text-red-400">*</span></label>
-                <select name="category" required value={d.category} onChange={hc} disabled={ds} className={ic}>
-                  <option value="" disabled>Pilih Kategori</option>
-                  {categories.map((cat) => (
-                    <option key={cat.code} value={cat.code}>
-                      {cat.name}
-                    </option>
-                  ))}
+                <label className={labelCls}>Asal Sekolah / Instansi <Req /></label>
+                <input
+                  name="institution"
+                  required
+                  value={d.institution}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  className={inputCls}
+                  placeholder="Misal: SMAN 5 Makassar"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Jumlah Anggota (Total termasuk Ketua) <Req /></label>
+                <select
+                  name="memberCount"
+                  required
+                  value={d.memberCount}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  className={inputCls}
+                >
+                  <option value={1}>1 Orang (Hanya Ketua)</option>
+                  <option value={2}>2 Orang (Ketua + 1 Anggota)</option>
+                  <option value={3}>3 Orang (Ketua + 2 Anggota)</option>
                 </select>
+                <p className="text-xs text-[#002D61]/50 mt-1.5 font-medium">Maks. 3 orang (1 Ketua + 2 Anggota).</p>
+              </div>
+            </div>
+          </div>
+
+          {/* === SECTION 2: DATA KETUA === */}
+          <div className={sectionCls}>
+            <div className={sectionHeaderCls}>
+              <div className="w-9 h-9 rounded-full bg-[#700702] text-white flex items-center justify-center font-bold">2</div>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Data Ketua Tim</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className={labelCls}>Nama Lengkap Ketua <Req /></label>
+                <input name="leaderName" required value={d.leaderName} onChange={handleChange} disabled={isLoading} className={inputCls} placeholder="Nama sesuai kartu pelajar" />
+              </div>
+              <div>
+                <label className={labelCls}>Email Ketua <Req /></label>
+                <input name="email" type="email" required value={d.email} onChange={handleChange} disabled={isLoading} className={inputCls} placeholder="email@contoh.com" />
+              </div>
+              <div>
+                <label className={labelCls}>No. WhatsApp Ketua <Req /></label>
+                <input name="whatsapp" required value={d.whatsapp} onChange={handleChange} disabled={isLoading} className={inputCls} placeholder="081234567890" />
               </div>
             </div>
 
-            {/* Harga dari backend */}
-            {selectedCategoryObj && (
-              <div className="mb-5 p-4 rounded-xl border border-amber-500/15 bg-amber-500/5">
-                <h4 className="text-sm font-semibold text-amber-400 mb-1">Biaya Pendaftaran</h4>
-                <p className="text-lg font-bold text-white">
-                  {fmt(selectedCategoryObj.fee)}
-                </p>
+            <div className="bg-[#FFF6E9]/60 p-5 rounded-2xl border border-[#002D61]/8">
+              <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Ketua</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                  <label className={labelCls}>Pas Foto <Req /></label>
+                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_ketua")} disabled={isLoading} className={fileCls} />
+                  <UploadBadge value={d.foto_ketua} />
+                </div>
+                <div>
+                  <label className={labelCls}>Kartu Pelajar <Req /></label>
+                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_ketua")} disabled={isLoading} className={fileCls} />
+                  <UploadBadge value={d.kartu_pelajar_ketua} />
+                </div>
+                <div>
+                  <label className={labelCls}>Bukti Follow IG <Req /></label>
+                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_ketua")} disabled={isLoading} className={fileCls} />
+                  <UploadBadge value={d.bukti_follow_ketua} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* === SECTION 3: DATA ANGGOTA 1 (Conditional) === */}
+          {d.memberCount >= 2 && (
+            <div className={sectionCls}>
+              <div className={sectionHeaderCls}>
+                <div className="w-9 h-9 rounded-full bg-[#002D61]/20 text-[#002D61] flex items-center justify-center font-bold text-sm">A1</div>
+                <h2 className="text-xl font-extrabold text-[#002D61]">Data Anggota 1</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className={labelCls}>Nama Lengkap Anggota 1 <Req /></label>
+                  <input name="nama_anggota_1" required value={d.nama_anggota_1} onChange={handleChange} disabled={isLoading} className={inputCls} placeholder="Nama sesuai kartu pelajar" />
+                </div>
+                <div>
+                  <label className={labelCls}>No. WhatsApp Anggota 1 <Req /></label>
+                  <input name="whatsapp_anggota_1" required value={d.whatsapp_anggota_1} onChange={handleChange} disabled={isLoading} className={inputCls} placeholder="081234567890" />
+                </div>
+              </div>
+              <div className="bg-[#FFF6E9]/60 p-5 rounded-2xl border border-[#002D61]/8">
+                <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Anggota 1</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div>
+                    <label className={labelCls}>Pas Foto <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_anggota_1")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.foto_anggota_1} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Kartu Pelajar <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_anggota_1")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.kartu_pelajar_anggota_1} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Bukti Follow IG <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_anggota_1")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.bukti_follow_anggota_1} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* === SECTION 4: DATA ANGGOTA 2 (Conditional) === */}
+          {d.memberCount === 3 && (
+            <div className={sectionCls}>
+              <div className={sectionHeaderCls}>
+                <div className="w-9 h-9 rounded-full bg-[#002D61]/20 text-[#002D61] flex items-center justify-center font-bold text-sm">A2</div>
+                <h2 className="text-xl font-extrabold text-[#002D61]">Data Anggota 2</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className={labelCls}>Nama Lengkap Anggota 2 <Req /></label>
+                  <input name="nama_anggota_2" required value={d.nama_anggota_2} onChange={handleChange} disabled={isLoading} className={inputCls} placeholder="Nama sesuai kartu pelajar" />
+                </div>
+                <div>
+                  <label className={labelCls}>No. WhatsApp Anggota 2 <Req /></label>
+                  <input name="whatsapp_anggota_2" required value={d.whatsapp_anggota_2} onChange={handleChange} disabled={isLoading} className={inputCls} placeholder="081234567890" />
+                </div>
+              </div>
+              <div className="bg-[#FFF6E9]/60 p-5 rounded-2xl border border-[#002D61]/8">
+                <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Anggota 2</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div>
+                    <label className={labelCls}>Pas Foto <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_anggota_2")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.foto_anggota_2} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Kartu Pelajar <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_anggota_2")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.kartu_pelajar_anggota_2} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Bukti Follow IG <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_anggota_2")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.bukti_follow_anggota_2} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* === SECTION 5: CATATAN & SUBMIT === */}
+          <div className={sectionCls}>
+            <div className={sectionHeaderCls}>
+              <div className="w-9 h-9 rounded-full bg-[#002D61] text-white flex items-center justify-center font-bold">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Catatan & Kirim</h2>
+            </div>
+
+            <div className="mb-6">
+              <label className={labelCls}>Catatan Tambahan (Opsional)</label>
+              <textarea
+                name="notes"
+                value={d.notes}
+                onChange={handleChange}
+                disabled={isLoading}
+                rows={3}
+                className={inputCls}
+                placeholder="Jika ada pesan untuk panitia..."
+              />
+            </div>
+
+            {/* Checklist sebelum submit */}
+            <div className="mb-6 p-4 rounded-xl bg-[#002D61]/5 border border-[#002D61]/10">
+              <p className="text-xs font-bold text-[#002D61] mb-3 uppercase tracking-wider">Pastikan sebelum submit:</p>
+              <div className="space-y-1.5">
+                {[
+                  { label: "Data tim & instansi sudah diisi", ok: !!(d.nama_tim && d.institution) },
+                  { label: "Data ketua sudah lengkap", ok: !!(d.leaderName && d.whatsapp && d.email) },
+                  { label: "Berkas ketua sudah diunggah", ok: !!(d.foto_ketua && d.kartu_pelajar_ketua && d.bukti_follow_ketua) },
+                  { label: "Bukti pembayaran QRIS sudah diunggah", ok: !!d.bukti_bayar },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${item.ok ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-400"}`}>
+                      {item.ok ? "✓" : "–"}
+                    </span>
+                    <span className={`text-xs font-medium ${item.ok ? "text-emerald-700" : "text-[#002D61]/50"}`}>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Progress bar upload */}
+            {uploadProgress && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-blue-700">
+                    Mengupload: {uploadProgress.label}
+                  </span>
+                  <span className="text-xs font-bold text-blue-700">
+                    {uploadProgress.current}/{uploadProgress.total}
+                  </span>
+                </div>
+                <div className="w-full bg-blue-100 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-blue-500 mt-1">Mohon tunggu, jangan tutup halaman ini.</p>
               </div>
             )}
 
-            <div className="mb-5">
-              <label className={lc}>Metode Pembayaran <span className="text-red-400">*</span></label>
-              <select name="paymentMethod" required value={d.paymentMethod} onChange={hc} disabled={ds} className={ic}>
-                <option value="" disabled>Pilih Metode</option>
-                {paymentMethods.map((m) => (
-                  <option key={m.code} value={m.code}>
-                    {m.name} {isMidtransCode(m.code) ? "(Coming Soon)" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-[120px_1fr] gap-5 mb-5">
-              <div>
-                <label className={lc}>Jml Anggota <span className="text-red-400">*</span></label>
-                <input name="memberCount" type="number" min="1" max="5" required value={d.memberCount} onChange={hc} disabled={ds} className={ic} />
-              </div>
-              <div>
-                <label className={lc}>Nama Anggota</label>
-                <textarea name="memberNames" value={d.memberNames} onChange={hc} disabled={ds} rows={2} className={ic + " resize-none"} placeholder="Pisahkan dengan koma" />
-              </div>
-            </div>
-
-            <div className="mb-5">
-              <label className={lc}>Catatan</label>
-              <textarea name="notes" value={d.notes} onChange={hc} disabled={ds} rows={2} className={ic + " resize-none"} placeholder="Opsional" />
-            </div>
-
-            <div className="border-t border-zinc-800 pt-6">
-              <button
-                type="submit"
-                disabled={ds || methodCategory === "midtrans"}
-                className="w-full md:w-auto px-10 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold rounded-xl shadow-[0_0_25px_rgba(245,158,11,0.2)] hover:shadow-[0_0_40px_rgba(245,158,11,0.35)] disabled:opacity-50 transition float-right flex items-center gap-2"
-              >
-                {ds && (
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-4 bg-[#700702] hover:bg-[#8a0903] text-white font-extrabold text-lg rounded-xl shadow-[0_4px_25px_rgba(112,7,2,0.25)] hover:shadow-[0_6px_35px_rgba(112,7,2,0.4)] transition-all disabled:opacity-60 flex items-center justify-center gap-3"
+            >
+              {isLoading ? (
+                <>
                   <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                )}
-                {ds ? "Memproses..." : "Kirim Pendaftaran"}
-              </button>
-              <div className="clear-both" />
-            </div>
-          </form>
-        </div>
+                  {uploadProgress ? `Mengupload ${uploadProgress.current}/${uploadProgress.total}...` : "Memproses..."}
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Kirim Pendaftaran
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </main>
     </div>
   );

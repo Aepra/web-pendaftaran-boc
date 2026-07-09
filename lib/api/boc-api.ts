@@ -1,95 +1,24 @@
 /**
  * BOC API Service Layer
  *
- * Single gateway to Google Apps Script backend.
- * All data-fetching goes through Next.js API route (/api/register) to avoid CORS.
- * All data master (categories, payment methods) is fetched from Apps Script.
- * No hardcoded data except MIDTRANS_CODES and ORANG_DALAM_CODE.
+ * Single gateway ke Google Apps Script backend.
+ * Semua request dikirim melalui Next.js proxy (/api/register) untuk menghindari CORS.
+ *
+ * Sistem Pembayaran: QRIS tunggal Rp100.000/Tim
+ * Status: MENUNGGU | DISETUJUI | DITOLAK
  */
 
-// ======================
-// MIDTRANS placeholder codes
-// These are the payment method codes that map to Midtrans integration.
-// Tim payment akan mengintegrasikan ini di tahap berikutnya.
-// ======================
-
-function parseCommaList(val: string | undefined): string[] {
-  if (!val) return [];
-  return val.split(",").map((s) => s.trim()).filter(Boolean);
-}
-
-export const MIDTRANS_CODES: string[] = parseCommaList(
-  process.env.NEXT_PUBLIC_MIDTRANS_CODES
-);
-
-export const ORANG_DALAM_CODE: string =
-  process.env.NEXT_PUBLIC_ORANG_DALAM_CODE || "ORANG_DALAM";
-
-/**
- * Check if a payment method code is a Midtrans method (coming soon).
- */
-export function isMidtransCode(code: string): boolean {
-  return MIDTRANS_CODES.includes(code);
-}
-
-/**
- * Check if a payment method code is ORANG_DALAM (free, auto-PAID).
- */
-export function isOrangDalamCode(code: string): boolean {
-  return code === ORANG_DALAM_CODE;
-}
-
-/**
- * Check if a payment method is "normal" (not Midtrans placeholder, not ORANG_DALAM).
- */
-export function isNormalPaymentCode(code: string): boolean {
-  return !isMidtransCode(code) && !isOrangDalamCode(code);
-}
-
-// ======================
-// DTO types
-// ======================
-
-export interface CategoryDTO {
-  code: string;
-  name: string;
-  fee: number;
-}
-
-export interface PaymentMethodDTO {
-  code: string;
-  name: string;
-}
-
-export interface RegisterResult {
-  registration_id: string;
-  order_id: string;
-  total_amount: number;
-  payment_url: string;
-  payment_flow_stage: "REGISTERED" | "SKIPPED_PAYMENT";
-}
-
-/** User data from Apps Script users sheet */
-export interface UserDTO {
-  user_id: string;
-  name: string;
-  email: string;
-  whatsapp: string;
-  created_at: string;
-}
-
-/** Registration history item from Apps Script */
-export interface RegistrationHistoryItem {
-  registration_id: string;
-  kategori_lomba: string;
-  payment_status: string;
-  participant_status: string;
-  created_at: string;
-}
+import type {
+  UserDTO,
+  RegistrationHistoryItem,
+  RegistrationDetail,
+  RegistrationData,
+  ParticipantStatus,
+  BocApiResponse,
+} from "@/types";
 
 // ======================
 // Generic fetch via Next.js API proxy
-// All calls go through /api/register to avoid CORS issues
 // ======================
 
 async function callApi<T>(payload: Record<string, unknown>): Promise<T> {
@@ -101,7 +30,10 @@ async function callApi<T>(payload: Record<string, unknown>): Promise<T> {
 
   if (!res.ok) {
     const errorBody = await res.json().catch(() => ({}));
-    throw new Error(errorBody.message || `Server returned HTTP ${res.status}`);
+    throw new Error(
+      (errorBody as { message?: string }).message ||
+        `Server returned HTTP ${res.status}`
+    );
   }
 
   const data: T = await res.json();
@@ -109,91 +41,14 @@ async function callApi<T>(payload: Record<string, unknown>): Promise<T> {
 }
 
 // ======================
-// Public API functions
+// User API
 // ======================
 
-/**
- * Fetch active competition categories from Apps Script.
- */
-export async function getCategories(): Promise<CategoryDTO[]> {
-  const response = await callApi<{ status: string; data: CategoryDTO[] }>({
-    action: "get_categories",
-  });
-
-  if (response.status !== "success" || !Array.isArray(response.data)) {
-    throw new Error("Gagal memuat daftar kategori.");
-  }
-
-  return response.data;
-}
-
-/**
- * Fetch active payment methods from Apps Script.
- */
-export async function getPaymentMethods(): Promise<PaymentMethodDTO[]> {
-  const response = await callApi<{ status: string; data: PaymentMethodDTO[] }>({
-    action: "get_payment_methods",
-  });
-
-  if (response.status !== "success" || !Array.isArray(response.data)) {
-    throw new Error("Gagal memuat metode pembayaran.");
-  }
-
-  return response.data;
-}
-
-/**
- * Submit registration to Apps Script via Next.js API proxy.
- *
- * Returns:
- *   { status: "success", data: RegisterResult }
- *   { status: "error", message: string }
- */
-export async function registerParticipant(payload: {
-  nama_tim: string;
-  nama_ketua: string;
+/** Sync akun Google ke sheet users setelah login. */
+export async function syncGoogleUser(data: {
+  name: string;
   email: string;
-  whatsapp: string;
-  instansi: string;
-  kategori_lomba: string;
-  payment_method_code: string;
-  jumlah_anggota: number;
-  nama_anggota: string;
-  notes: string;
-}): Promise<{
-  status: "success" | "error";
-  message?: string;
-  data?: RegisterResult;
-}> {
-  return callApi({
-    action: "register",
-    ...payload,
-  });
-}
-
-// ======================
-// User & Registration API
-// ======================
-
-/** Fetch user profile data by email from Apps Script */
-export async function getUserByEmail(email: string): Promise<UserDTO | null> {
-  const response = await callApi<{ status: string; data?: UserDTO; message?: string }>({
-    action: "get_user",
-    email,
-  });
-
-  if (response.status !== "success" || !response.data) {
-    return null;
-  }
-
-  return response.data;
-}
-
-/**
- * Sync Google user to Apps Script users sheet.
- * Called after successful Google OAuth to ensure user exists.
- */
-export async function syncGoogleUser(data: { name: string; email: string }): Promise<void> {
+}): Promise<void> {
   try {
     await callApi<{ status: string }>({
       action: "sync_google_user",
@@ -201,21 +56,203 @@ export async function syncGoogleUser(data: { name: string; email: string }): Pro
       email: data.email,
     });
   } catch {
-    // Non-critical – user dapat tetap lanjut tanpa error
-    console.warn("[syncGoogleUser] Failed to sync user (non-critical)");
+    console.warn("[syncGoogleUser] Gagal sinkronisasi (non-critical)");
   }
 }
 
-/** Fetch registration history by email from Apps Script */
-export async function getRegistrationsByEmail(email: string): Promise<RegistrationHistoryItem[]> {
-  const response = await callApi<{ status: string; data?: RegistrationHistoryItem[]; message?: string }>({
+/** Ambil data profil user berdasarkan email. */
+export async function getUserByEmail(email: string): Promise<UserDTO | null> {
+  const response = await callApi<BocApiResponse<UserDTO>>({
+    action: "get_user",
+    email,
+  });
+
+  if (response.status !== "success") return null;
+  return response.data;
+}
+
+// ======================
+// Registrasi — User
+// ======================
+
+/** Submit pendaftaran baru. */
+export async function registerParticipant(payload: {
+  nama_tim: string;
+  nama_ketua: string;
+  email: string;
+  whatsapp: string;
+  instansi: string;
+  jumlah_anggota: number;
+  nama_anggota_1: string;
+  whatsapp_anggota_1: string;
+  nama_anggota_2: string;
+  whatsapp_anggota_2: string;
+  notes: string;
+  foto_ketua: string;
+  kartu_pelajar_ketua: string;
+  bukti_follow_ketua: string;
+  foto_anggota_1: string;
+  kartu_pelajar_anggota_1: string;
+  bukti_follow_anggota_1: string;
+  foto_anggota_2: string;
+  kartu_pelajar_anggota_2: string;
+  bukti_follow_anggota_2: string;
+  bukti_bayar: string;
+}): Promise<{ status: "success" | "error"; message?: string; data?: RegistrationData }> {
+  return callApi({
+    action: "register",
+    ...payload,
+  });
+}
+
+/** Ambil daftar riwayat pendaftaran berdasarkan email. */
+export async function getRegistrationsByEmail(
+  email: string
+): Promise<RegistrationHistoryItem[]> {
+  const response = await callApi<BocApiResponse<RegistrationHistoryItem[]>>({
     action: "get_registrations",
     email,
   });
 
+  if (response.status !== "success" || !Array.isArray(response.data)) return [];
+  return response.data;
+}
+
+/** Ambil detail lengkap satu pendaftaran (untuk user). */
+export async function getRegistrationDetail(
+  registrationId: string,
+  email: string
+): Promise<RegistrationDetail | null> {
+  const response = await callApi<BocApiResponse<RegistrationDetail>>({
+    action: "get_registration_detail",
+    registration_id: registrationId,
+    email,
+  });
+
+  if (response.status !== "success") return null;
+  return response.data;
+}
+
+/** Update pendaftaran yang masih MENUNGGU. */
+export async function updateRegistration(payload: {
+  registration_id: string;
+  email: string;
+  nama_tim: string;
+  nama_ketua: string;
+  whatsapp: string;
+  instansi: string;
+  jumlah_anggota: number;
+  nama_anggota_1: string;
+  whatsapp_anggota_1: string;
+  nama_anggota_2: string;
+  whatsapp_anggota_2: string;
+  notes: string;
+  foto_ketua: string;
+  kartu_pelajar_ketua: string;
+  bukti_follow_ketua: string;
+  foto_anggota_1: string;
+  kartu_pelajar_anggota_1: string;
+  bukti_follow_anggota_1: string;
+  foto_anggota_2: string;
+  kartu_pelajar_anggota_2: string;
+  bukti_follow_anggota_2: string;
+  bukti_bayar: string;
+}): Promise<{ status: "success" | "error"; message?: string }> {
+  return callApi({
+    action: "update_registration",
+    ...payload,
+  });
+}
+
+// ======================
+// Admin API
+// ======================
+
+/** Ambil semua pendaftaran (admin only). */
+export async function getAllRegistrations(): Promise<RegistrationHistoryItem[]> {
+  const response = await callApi<BocApiResponse<RegistrationHistoryItem[]>>({
+    action: "admin_get_all_registrations",
+  });
+
   if (response.status !== "success" || !Array.isArray(response.data)) {
-    return [];
+    console.warn("[getAllRegistrations] Fallback ke mock data (dev mode)");
+    return getMockRegistrations();
   }
 
   return response.data;
+}
+
+/** Ambil detail lengkap satu pendaftaran (admin, semua dokumen). */
+export async function adminGetRegistrationDetail(
+  registrationId: string
+): Promise<RegistrationDetail | null> {
+  const response = await callApi<BocApiResponse<RegistrationDetail>>({
+    action: "admin_get_registration_detail",
+    registration_id: registrationId,
+  });
+
+  if (response.status !== "success") return null;
+  return response.data;
+}
+
+/** Ubah status pendaftaran (admin only). */
+export async function updateRegistrationStatus(
+  registrationId: string,
+  status: ParticipantStatus,
+  adminMessage: string
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const response = await callApi<{ status: string; message?: string }>({
+      action: "admin_update_status",
+      registration_id: registrationId,
+      status,
+      admin_message: adminMessage,
+    });
+    return { success: response.status === "success", message: response.message };
+  } catch (err) {
+    console.error("[updateRegistrationStatus] Error:", err);
+    return { success: false, message: "Gagal menghubungi server." };
+  }
+}
+
+// ======================
+// Mock Data (Dev Fallback — untuk admin getAllRegistrations saja)
+// ======================
+
+function getMockRegistrations(): RegistrationHistoryItem[] {
+  return [
+    {
+      registration_id: "REG-2026-001",
+      nama_tim: "Tim Investigator Alpha",
+      nama_ketua: "Budi Santoso",
+      instansi: "SMAN 1 Makassar",
+      jumlah_anggota: 3,
+      participant_status: "MENUNGGU",
+      admin_message: "",
+      created_at: "2026-08-01T10:00:00",
+      updated_at: "2026-08-01T10:00:00",
+    },
+    {
+      registration_id: "REG-2026-002",
+      nama_tim: "Sherlock Squad",
+      nama_ketua: "Andi Rahman",
+      instansi: "SMAN 5 Makassar",
+      jumlah_anggota: 2,
+      participant_status: "DISETUJUI",
+      admin_message: "Selamat, pendaftaran tim Anda telah disetujui.",
+      created_at: "2026-08-02T09:00:00",
+      updated_at: "2026-08-03T14:00:00",
+    },
+    {
+      registration_id: "REG-2026-003",
+      nama_tim: "Detective Agency",
+      nama_ketua: "Sari Dewi",
+      instansi: "SMAN 3 Makassar",
+      jumlah_anggota: 1,
+      participant_status: "DITOLAK",
+      admin_message: "Bukti pembayaran kurang jelas. Harap upload ulang.",
+      created_at: "2026-08-02T11:00:00",
+      updated_at: "2026-08-03T15:00:00",
+    },
+  ];
 }

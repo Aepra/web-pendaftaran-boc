@@ -5,7 +5,6 @@ import type { RegistrationData } from "@/types";
 
 interface RegistrationContextType {
   data: RegistrationData | null;
-  paymentFlowStage: "REGISTERED" | "SKIPPED_PAYMENT" | null;
   setData: (d: RegistrationData) => void;
   clearData: () => void;
 }
@@ -18,21 +17,19 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
   const setData = useCallback((d: RegistrationData) => {
     setDataState(d);
     if (typeof window !== "undefined") {
-      localStorage.setItem("registration_data", JSON.stringify(d));
+      localStorage.setItem("boc_registration_data", JSON.stringify(d));
     }
   }, []);
 
   const clearData = useCallback(() => {
     setDataState(null);
     if (typeof window !== "undefined") {
-      localStorage.removeItem("registration_data");
+      localStorage.removeItem("boc_registration_data");
     }
   }, []);
 
-  const paymentFlowStage = data?.payment_flow_stage ?? null;
-
   return (
-    <RegistrationContext.Provider value={{ data, paymentFlowStage, setData, clearData }}>
+    <RegistrationContext.Provider value={{ data, setData, clearData }}>
       {children}
     </RegistrationContext.Provider>
   );

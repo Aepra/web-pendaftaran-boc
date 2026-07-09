@@ -1,37 +1,108 @@
 // ======================
-// Master Data (from Apps Script)
+// Status Standar — Satu-satunya nilai yang boleh digunakan di seluruh codebase
 // ======================
 
-export interface CategoryItem {
-  code: string;
-  name: string;
-  fee: number;
-}
+export type ParticipantStatus = "MENUNGGU" | "DISETUJUI" | "DITOLAK";
 
-export interface PaymentMethodItem {
-  code: string;
+// ======================
+// DTO — User
+// ======================
+
+export interface UserDTO {
+  user_id: string;
   name: string;
+  email: string;
+  whatsapp: string;
+  created_at: string;
 }
 
 // ======================
-// Registration Form
+// DTO — Registrasi (untuk list di dashboard user)
+// ======================
+
+export interface RegistrationHistoryItem {
+  registration_id: string;
+  nama_tim: string;
+  instansi: string;
+  nama_ketua: string;
+  jumlah_anggota: number;
+  participant_status: ParticipantStatus;
+  admin_message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ======================
+// DTO — Detail Registrasi Lengkap (untuk panel detail user & admin)
+// ======================
+
+export interface RegistrationDetail {
+  registration_id: string;
+  nama_tim: string;
+  nama_ketua: string;
+  email: string;
+  whatsapp: string;
+  instansi: string;
+  jumlah_anggota: number;
+  nama_anggota_1: string;
+  whatsapp_anggota_1: string;
+  nama_anggota_2: string;
+  whatsapp_anggota_2: string;
+  notes: string;
+  foto_ketua: string;
+  kartu_pelajar_ketua: string;
+  bukti_follow_ketua: string;
+  foto_anggota_1: string;
+  kartu_pelajar_anggota_1: string;
+  bukti_follow_anggota_1: string;
+  foto_anggota_2: string;
+  kartu_pelajar_anggota_2: string;
+  bukti_follow_anggota_2: string;
+  bukti_bayar: string;
+  participant_status: ParticipantStatus;
+  admin_message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ======================
+// Form State — Halaman Pendaftaran
 // ======================
 
 export interface RegistrationFormData {
-  teamName: string;
+  // Data Tim
+  nama_tim: string;
+  institution: string;
+  memberCount: number;
+  // Data Ketua
   leaderName: string;
   email: string;
   whatsapp: string;
-  institution: string;
-  category: string;
-  paymentMethod: string;
-  memberCount: number;
-  memberNames: string;
+  // Data Anggota
+  nama_anggota_1: string;
+  whatsapp_anggota_1: string;
+  nama_anggota_2: string;
+  whatsapp_anggota_2: string;
+  // Catatan
   notes: string;
+  // Berkas Ketua (base64)
+  foto_ketua: string;
+  kartu_pelajar_ketua: string;
+  bukti_follow_ketua: string;
+  // Berkas Anggota 1 (base64)
+  foto_anggota_1: string;
+  kartu_pelajar_anggota_1: string;
+  bukti_follow_anggota_1: string;
+  // Berkas Anggota 2 (base64)
+  foto_anggota_2: string;
+  kartu_pelajar_anggota_2: string;
+  bukti_follow_anggota_2: string;
+  // Pembayaran
+  bukti_bayar: string;
 }
 
 // ======================
-// Apps Script Request Payload
+// Payload — Submit Pendaftaran ke Apps Script
 // ======================
 
 export interface RegisterPayload {
@@ -41,23 +112,46 @@ export interface RegisterPayload {
   email: string;
   whatsapp: string;
   instansi: string;
-  kategori_lomba: string;
-  payment_method_code: string;
   jumlah_anggota: number;
-  nama_anggota: string;
+  nama_anggota_1: string;
+  whatsapp_anggota_1: string;
+  nama_anggota_2: string;
+  whatsapp_anggota_2: string;
   notes: string;
-}
-
-export interface GetCategoriesPayload {
-  action: "get_categories";
-}
-
-export interface GetPaymentMethodsPayload {
-  action: "get_payment_methods";
+  foto_ketua: string;
+  kartu_pelajar_ketua: string;
+  bukti_follow_ketua: string;
+  foto_anggota_1: string;
+  kartu_pelajar_anggota_1: string;
+  bukti_follow_anggota_1: string;
+  foto_anggota_2: string;
+  kartu_pelajar_anggota_2: string;
+  bukti_follow_anggota_2: string;
+  bukti_bayar: string;
 }
 
 // ======================
-// Apps Script Response
+// Payload — Update Pendaftaran (user edit jika MENUNGGU)
+// ======================
+
+export interface UpdateRegistrationPayload extends Omit<RegisterPayload, "action"> {
+  action: "update_registration";
+  registration_id: string;
+}
+
+// ======================
+// Payload — Admin Update Status
+// ======================
+
+export interface AdminUpdateStatusPayload {
+  action: "admin_update_status";
+  registration_id: string;
+  status: ParticipantStatus;
+  admin_message: string;
+}
+
+// ======================
+// Response — Standar Apps Script
 // ======================
 
 export interface BocApiSuccess<T> {
@@ -73,19 +167,9 @@ export interface BocApiError {
 export type BocApiResponse<T> = BocApiSuccess<T> | BocApiError;
 
 // ======================
-// Registration Response Data
+// Response — Setelah Submit Pendaftaran Berhasil
 // ======================
 
 export interface RegistrationData {
   registration_id: string;
-  order_id: string;
-  total_amount: number;
-  payment_url: string;
-  payment_flow_stage: "REGISTERED" | "SKIPPED_PAYMENT";
-}
-
-export interface RegistrationResponse {
-  status: "success" | "error";
-  message?: string;
-  data?: RegistrationData;
 }

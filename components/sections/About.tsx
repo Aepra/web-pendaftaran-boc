@@ -1,29 +1,28 @@
 export default function About() {
   return (
-    <section id="about" className="relative w-full bg-zinc-950 py-20 md:py-28">
+    <section id="about" className="relative w-full bg-white/75 backdrop-blur-[2px] py-20 md:py-28">
       <div className="max-w-6xl mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
           {/* Section label */}
-          <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-amber-500 mb-4">
+          <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-[#700702] mb-4 bg-[#700702]/8 px-3 py-1 rounded-full border border-[#700702]/15">
             Case File
           </span>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-8 leading-[1.15]">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#002D61] mb-8 leading-[1.15]">
             Tentang Kompetisi
           </h2>
 
-          <p className="text-base sm:text-lg text-zinc-400 leading-relaxed mb-6">
+          <p className="text-base sm:text-lg text-[#002D61]/70 leading-relaxed mb-6">
             Battle of Champions adalah kompetisi akademik tahunan untuk siswa
             SMA se-Sulawesi Selatan yang menggabungkan matematika, logika,
             pengetahuan umum, dan pemecahan masalah dalam atmosfer permainan
             investigasi yang seru dan menantang.
           </p>
 
-          <p className="text-base sm:text-lg text-zinc-400 leading-relaxed mb-10">
-            Memasuki Season III, BoC 2026 mengusung tema
-            {" "}
-            <span className="text-amber-400 font-semibold">
-              "SmartSolve: Unlock Your Mind, Ignite The Future"
+          <p className="text-base sm:text-lg text-[#002D61]/70 leading-relaxed mb-10">
+            Memasuki Season III, BoC 2026 mengusung tema{" "}
+            <span className="text-[#700702] font-semibold">
+              &ldquo;ClashMind: Think Faster, Solve Smarter&rdquo;
             </span>{" "}
             — mengajak peserta mengasah kemampuan berpikir kritis, kreativitas,
             dan kerja sama tim melalui rangkaian tantangan akademik yang
@@ -31,7 +30,7 @@ export default function About() {
           </p>
 
           {/* Tujuan */}
-          <h3 className="text-xl sm:text-2xl font-bold text-white mt-14 mb-6">
+          <h3 className="text-xl sm:text-2xl font-bold text-[#002D61] mt-14 mb-6">
             Tujuan Kegiatan
           </h3>
 
@@ -76,33 +75,33 @@ export default function About() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="group p-5 rounded-xl border border-zinc-800/60 bg-zinc-900/40 hover:border-amber-500/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.06)] transition-all duration-300"
+                className="group p-5 rounded-xl border border-[#002D61]/10 bg-[#FFF6E9] hover:border-[#002D61]/30 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 group-hover:shadow-[0_0_10px_rgba(245,158,11,0.15)] transition-all">
+                  <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-[#700702]/10 text-[#700702] group-hover:bg-[#700702]/15 transition-all">
                     {item.icon}
                   </div>
-                  <h4 className="text-sm font-bold text-white">{item.title}</h4>
+                  <h4 className="text-sm font-bold text-[#002D61]">{item.title}</h4>
                 </div>
-                <p className="text-xs text-zinc-400 leading-relaxed">{item.desc}</p>
+                <p className="text-xs text-[#002D61]/60 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
 
           {/* Target Peserta */}
-          <div className="mt-14 p-6 rounded-2xl border border-amber-500/15 bg-amber-500/5 text-center">
-            <h3 className="text-lg font-bold text-amber-400 mb-3">Peserta</h3>
-            <p className="text-base sm:text-lg text-zinc-300 font-semibold">
+          <div className="mt-14 p-6 rounded-2xl border border-[#002D61]/15 bg-[#002D61]/5 text-center">
+            <h3 className="text-lg font-bold text-[#002D61] mb-3">Peserta</h3>
+            <p className="text-base sm:text-lg text-[#002D61] font-semibold">
               Siswa SMA/SMK/MA Sederajat se-Sulawesi Selatan
             </p>
-            <p className="text-sm text-zinc-500 mt-2">
-              Individu maupun tim (maks. 5 anggota)
+            <p className="text-sm text-[#002D61]/60 mt-2">
+              Tim (maks. 3 anggota termasuk ketua)
             </p>
           </div>
 
           {/* Skills Pillars */}
           <div className="mt-12">
-            <h3 className="text-lg font-bold text-white mb-5">
+            <h3 className="text-lg font-bold text-[#002D61] mb-5">
               Kemampuan yang Diasah
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -116,7 +115,7 @@ export default function About() {
               ].map((skill) => (
                 <div
                   key={skill}
-                  className="p-3 rounded-xl border border-zinc-800/40 bg-zinc-900/20 text-sm font-semibold text-zinc-400 hover:text-amber-400 hover:border-amber-500/20 transition-colors"
+                  className="p-3 rounded-xl border border-[#002D61]/10 bg-white text-sm font-semibold text-[#002D61]/70 hover:text-[#700702] hover:border-[#700702]/25 hover:bg-[#700702]/3 transition-colors cursor-default"
                 >
                   {skill}
                 </div>
