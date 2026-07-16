@@ -524,7 +524,7 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           value={newAdmin}
           onChange={(e) => setNewAdmin(e.target.value)}
           disabled={loading}
-          className="flex-1 p-3 border border-[#002D61]/15 rounded-xl bg-[#FFF6E9]/50 text-[#002D61] placeholder:text-[#002D61]/40 focus:outline-none focus:border-[#700702]"
+          className="flex-1 w-full p-3 border border-[#002D61]/15 rounded-xl bg-[#FFF6E9]/50 text-[#002D61] placeholder:text-[#002D61]/40 focus:outline-none focus:border-[#700702]"
         />
         <button
           type="submit"
@@ -539,9 +539,9 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
         <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-2">Daftar Admin Aktif</p>
         
         <div className="flex items-center justify-between gap-2 p-4 bg-gray-50 rounded-xl border border-gray-200">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="shrink-0 w-8 h-8 rounded-full bg-[#700702] flex items-center justify-center text-white font-bold text-xs">S</div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-[#002D61] truncate">{ADMIN_EMAIL}</p>
               <p className="text-[10px] font-semibold text-[#700702] uppercase tracking-wider truncate">Super Admin (Server Config)</p>
             </div>
@@ -553,11 +553,11 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
         ) : (
           admins.map((email) => (
             <div key={email} className="flex items-center justify-between gap-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-[#002D61]/10 flex items-center justify-center text-[#002D61] font-bold text-xs">
                   {email[0].toUpperCase()}
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-[#002D61] truncate">{email}</p>
                   <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider truncate">Admin Tambahan</p>
                 </div>
@@ -565,7 +565,7 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
               <button
                 onClick={() => handleRemove(email)}
                 disabled={loading}
-                className="shrink-0 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                className="shrink-0 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50 whitespace-nowrap"
               >
                 Hapus
               </button>
