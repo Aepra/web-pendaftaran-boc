@@ -114,12 +114,11 @@ export default function Hero() {
         </div>
 
         {/* Stats Row */}
-        <div className="mt-16 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-8 w-full max-w-3xl">
+        <div className="mt-16 md:mt-20 grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-8 w-full max-w-3xl">
           {[
-            { value: "1000+", label: "Detectives" },
-            { value: "24", label: "Kab/Kota" },
-            { value: "5", label: "Tahap Lomba" },
-            { value: "Rp 50jt+", label: "Total Hadiah" },
+            { value: "25 Tim", label: "Detectives" },
+            { value: "5 TKP", label: "Tahapan Lomba" },
+            { value: "Rp Jutaan", label: "Total Hadiah" },
           ].map((stat) => (
             <div
               key={stat.label}
