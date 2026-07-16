@@ -836,9 +836,9 @@ export default function AdminDashboard() {
                       <h2 className="text-base font-extrabold text-[#002D61]">
                         Daftar Peserta ({filtered.length})
                       </h2>
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                         {/* Search */}
-                        <div className="relative">
+                        <div className="relative w-full sm:w-auto">
                           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002D61]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
@@ -847,11 +847,11 @@ export default function AdminDashboard() {
                             placeholder="Nama tim, ketua, sekolah..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 pr-3 py-2 text-xs rounded-lg border border-[#002D61]/15 bg-[#FFF6E9] text-[#002D61] placeholder:text-[#002D61]/40 focus:outline-none focus:border-[#002D61]/40 w-52"
+                            className="pl-9 pr-3 py-2 text-xs rounded-lg border border-[#002D61]/15 bg-[#FFF6E9] text-[#002D61] placeholder:text-[#002D61]/40 focus:outline-none focus:border-[#002D61]/40 w-full sm:w-52"
                           />
                         </div>
                         {/* Filter Tabs */}
-                        <div className="flex bg-[#FFF6E9] rounded-lg border border-[#002D61]/10 p-0.5">
+                        <div className="flex bg-[#FFF6E9] rounded-lg border border-[#002D61]/10 p-0.5 overflow-x-auto w-full sm:w-auto">
                           {([["ALL", "Semua"], ["MENUNGGU", "Menunggu"], ["DISETUJUI", "Disetujui"], ["DITOLAK", "Ditolak"]] as const).map(([val, lbl]) => (
                             <button
                               key={val}
@@ -892,18 +892,20 @@ export default function AdminDashboard() {
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex-1 min-w-0">
-                                <p className="font-bold text-[#002D61] text-sm">{reg.nama_tim}</p>
+                                <p className="font-bold text-[#002D61] text-sm truncate">{reg.nama_tim}</p>
                                 <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-[#002D61]/60">
-                                  <span>{reg.nama_ketua}</span>
-                                  <span>·</span>
-                                  <span className="truncate max-w-[160px]">{reg.instansi}</span>
-                                  <span>·</span>
-                                  <span>{reg.jumlah_anggota} orang</span>
-                                  <span>·</span>
-                                  <span>{formatDate(reg.created_at)}</span>
+                                  <span className="truncate max-w-[120px]">{reg.nama_ketua}</span>
+                                  <span className="hidden sm:inline">·</span>
+                                  <span className="truncate max-w-[140px]">{reg.instansi}</span>
+                                  <span className="hidden sm:inline">·</span>
+                                  <span className="whitespace-nowrap">{reg.jumlah_anggota} orang</span>
+                                  <span className="hidden sm:inline">·</span>
+                                  <span className="whitespace-nowrap">{formatDate(reg.created_at)}</span>
                                 </div>
                               </div>
-                              <StatusBadge status={reg.participant_status} />
+                              <div className="shrink-0">
+                                <StatusBadge status={reg.participant_status} />
+                              </div>
                             </div>
                           </button>
                         ))
