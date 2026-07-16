@@ -538,12 +538,12 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
       <div className="space-y-3">
         <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-2">Daftar Admin Aktif</p>
         
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#700702] flex items-center justify-center text-white font-bold text-xs">S</div>
-            <div>
-              <p className="text-sm font-bold text-[#002D61]">{ADMIN_EMAIL}</p>
-              <p className="text-[10px] font-semibold text-[#700702] uppercase tracking-wider">Super Admin (Server Config)</p>
+        <div className="flex items-center justify-between gap-2 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-[#700702] flex items-center justify-center text-white font-bold text-xs">S</div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-[#002D61] truncate">{ADMIN_EMAIL}</p>
+              <p className="text-[10px] font-semibold text-[#700702] uppercase tracking-wider truncate">Super Admin (Server Config)</p>
             </div>
           </div>
         </div>
@@ -552,20 +552,20 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           <p className="text-sm text-gray-400 py-4 text-center">Memuat data admin...</p>
         ) : (
           admins.map((email) => (
-            <div key={email} className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#002D61]/10 flex items-center justify-center text-[#002D61] font-bold text-xs">
+            <div key={email} className="flex items-center justify-between gap-2 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-[#002D61]/10 flex items-center justify-center text-[#002D61] font-bold text-xs">
                   {email[0].toUpperCase()}
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-[#002D61]">{email}</p>
-                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Admin Tambahan</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[#002D61] truncate">{email}</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider truncate">Admin Tambahan</p>
                 </div>
               </div>
               <button
                 onClick={() => handleRemove(email)}
                 disabled={loading}
-                className="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                className="shrink-0 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
               >
                 Hapus
               </button>
