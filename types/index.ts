@@ -51,13 +51,16 @@ export interface RegistrationDetail {
   notes: string;
   foto_ketua: string;
   kartu_pelajar_ketua: string;
-  bukti_follow_ketua: string;
+  bukti_follow_boc_ketua: string;
+  bukti_follow_yv_ketua: string;
   foto_anggota_1: string;
   kartu_pelajar_anggota_1: string;
-  bukti_follow_anggota_1: string;
+  bukti_follow_boc_anggota_1: string;
+  bukti_follow_yv_anggota_1: string;
   foto_anggota_2: string;
   kartu_pelajar_anggota_2: string;
-  bukti_follow_anggota_2: string;
+  bukti_follow_boc_anggota_2: string;
+  bukti_follow_yv_anggota_2: string;
   bukti_bayar: string;
   participant_status: ParticipantStatus;
   admin_message: string;
@@ -85,18 +88,23 @@ export interface RegistrationFormData {
   whatsapp_anggota_2: string;
   // Catatan
   notes: string;
-  // Berkas Ketua (base64)
+  // Berkas Ketua
   foto_ketua: string;
   kartu_pelajar_ketua: string;
-  bukti_follow_ketua: string;
-  // Berkas Anggota 1 (base64)
+  bukti_follow_boc_ketua: string;
+  bukti_follow_yv_ketua: string;
+
+  // Berkas Anggota 1 (opsional)
   foto_anggota_1: string;
   kartu_pelajar_anggota_1: string;
-  bukti_follow_anggota_1: string;
-  // Berkas Anggota 2 (base64)
+  bukti_follow_boc_anggota_1: string;
+  bukti_follow_yv_anggota_1: string;
+
+  // Berkas Anggota 2 (opsional)
   foto_anggota_2: string;
   kartu_pelajar_anggota_2: string;
-  bukti_follow_anggota_2: string;
+  bukti_follow_boc_anggota_2: string;
+  bukti_follow_yv_anggota_2: string;
   // Pembayaran
   bukti_bayar: string;
 }
@@ -120,13 +128,16 @@ export interface RegisterPayload {
   notes: string;
   foto_ketua: string;
   kartu_pelajar_ketua: string;
-  bukti_follow_ketua: string;
+  bukti_follow_boc_ketua: string;
+  bukti_follow_yv_ketua: string;
   foto_anggota_1: string;
   kartu_pelajar_anggota_1: string;
-  bukti_follow_anggota_1: string;
+  bukti_follow_boc_anggota_1: string;
+  bukti_follow_yv_anggota_1: string;
   foto_anggota_2: string;
   kartu_pelajar_anggota_2: string;
-  bukti_follow_anggota_2: string;
+  bukti_follow_boc_anggota_2: string;
+  bukti_follow_yv_anggota_2: string;
   bukti_bayar: string;
 }
 

@@ -160,13 +160,16 @@ function EditPanel({
     notes: detail.notes,
     foto_ketua: detail.foto_ketua,
     kartu_pelajar_ketua: detail.kartu_pelajar_ketua,
-    bukti_follow_ketua: detail.bukti_follow_ketua,
+    bukti_follow_boc_ketua: detail.bukti_follow_boc_ketua,
+    bukti_follow_yv_ketua: detail.bukti_follow_yv_ketua,
     foto_anggota_1: detail.foto_anggota_1,
     kartu_pelajar_anggota_1: detail.kartu_pelajar_anggota_1,
-    bukti_follow_anggota_1: detail.bukti_follow_anggota_1,
+    bukti_follow_boc_anggota_1: detail.bukti_follow_boc_anggota_1,
+    bukti_follow_yv_anggota_1: detail.bukti_follow_yv_anggota_1,
     foto_anggota_2: detail.foto_anggota_2,
     kartu_pelajar_anggota_2: detail.kartu_pelajar_anggota_2,
-    bukti_follow_anggota_2: detail.bukti_follow_anggota_2,
+    bukti_follow_boc_anggota_2: detail.bukti_follow_boc_anggota_2,
+    bukti_follow_yv_anggota_2: detail.bukti_follow_yv_anggota_2,
     bukti_bayar: detail.bukti_bayar,
   });
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -207,13 +210,16 @@ function EditPanel({
       notes: d.notes,
       foto_ketua: d.foto_ketua,
       kartu_pelajar_ketua: d.kartu_pelajar_ketua,
-      bukti_follow_ketua: d.bukti_follow_ketua,
+      bukti_follow_boc_ketua: d.bukti_follow_boc_ketua,
+      bukti_follow_yv_ketua: d.bukti_follow_yv_ketua,
       foto_anggota_1: d.memberCount >= 2 ? d.foto_anggota_1 : "",
       kartu_pelajar_anggota_1: d.memberCount >= 2 ? d.kartu_pelajar_anggota_1 : "",
-      bukti_follow_anggota_1: d.memberCount >= 2 ? d.bukti_follow_anggota_1 : "",
+      bukti_follow_boc_anggota_1: d.memberCount >= 2 ? d.bukti_follow_boc_anggota_1 : "",
+      bukti_follow_yv_anggota_1: d.memberCount >= 2 ? d.bukti_follow_yv_anggota_1 : "",
       foto_anggota_2: d.memberCount === 3 ? d.foto_anggota_2 : "",
       kartu_pelajar_anggota_2: d.memberCount === 3 ? d.kartu_pelajar_anggota_2 : "",
-      bukti_follow_anggota_2: d.memberCount === 3 ? d.bukti_follow_anggota_2 : "",
+      bukti_follow_boc_anggota_2: d.memberCount === 3 ? d.bukti_follow_boc_anggota_2 : "",
+      bukti_follow_yv_anggota_2: d.memberCount === 3 ? d.bukti_follow_yv_anggota_2 : "",
       bukti_bayar: d.bukti_bayar,
     });
     if (result.status === "success") { onSuccess(); }
@@ -261,10 +267,95 @@ function EditPanel({
           </div>
         )}
 
-        <div>
-          <label className={lc}>Bukti Pembayaran QRIS (upload ulang jika ingin mengganti)</label>
+        {/* Berkas Ketua */}
+        <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
+          <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Ketua</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className={lc}>Pas Foto</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_ketua")} disabled={isLoading} className={fc} />
+              {d.foto_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Kartu Pelajar</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_ketua")} disabled={isLoading} className={fc} />
+              {d.kartu_pelajar_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Follow BoC</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_ketua")} disabled={isLoading} className={fc} />
+              {d.bukti_follow_boc_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Follow Youthverse</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_ketua")} disabled={isLoading} className={fc} />
+              {d.bukti_follow_yv_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Berkas Anggota 1 */}
+        {d.memberCount >= 2 && (
+          <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
+            <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Anggota 1</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className={lc}>Pas Foto</label>
+                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_anggota_1")} disabled={isLoading} className={fc} />
+                {d.foto_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+              </div>
+              <div>
+                <label className={lc}>Kartu Pelajar</label>
+                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_anggota_1")} disabled={isLoading} className={fc} />
+                {d.kartu_pelajar_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+              </div>
+              <div>
+                <label className={lc}>Follow BoC</label>
+                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_anggota_1")} disabled={isLoading} className={fc} />
+                {d.bukti_follow_boc_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+              </div>
+              <div>
+                <label className={lc}>Follow Youthverse</label>
+                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fc} />
+                {d.bukti_follow_yv_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Berkas Anggota 2 */}
+        {d.memberCount === 3 && (
+          <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
+            <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Anggota 2</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className={lc}>Pas Foto</label>
+                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_anggota_2")} disabled={isLoading} className={fc} />
+                {d.foto_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+              </div>
+              <div>
+                <label className={lc}>Kartu Pelajar</label>
+                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_anggota_2")} disabled={isLoading} className={fc} />
+                {d.kartu_pelajar_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+              </div>
+              <div>
+                <label className={lc}>Follow BoC</label>
+                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_anggota_2")} disabled={isLoading} className={fc} />
+                {d.bukti_follow_boc_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+              </div>
+              <div>
+                <label className={lc}>Follow Youthverse</label>
+                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fc} />
+                {d.bukti_follow_yv_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
+          <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Bukti Pembayaran QRIS</p>
           <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_bayar")} disabled={isLoading} className={fc} />
-          {d.bukti_bayar && <span className="text-xs text-emerald-600 mt-1 block font-bold">✓ Sudah ada bukti pembayaran</span>}
+          {d.bukti_bayar && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
         </div>
 
         <div>
@@ -416,29 +507,32 @@ function RegistrationCard({
               {/* Dokumen */}
               <div>
                 <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Berkas Ketua</p>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <ImageThumb src={detail.foto_ketua} label="Pas Foto Ketua" />
                   <ImageThumb src={detail.kartu_pelajar_ketua} label="Kartu Pelajar Ketua" />
-                  <ImageThumb src={detail.bukti_follow_ketua} label="Bukti Follow IG Ketua" />
+                  <ImageThumb src={detail.bukti_follow_boc_ketua} label="Follow BoC Ketua" />
+                  <ImageThumb src={detail.bukti_follow_yv_ketua} label="Follow YV Ketua" />
                 </div>
               </div>
               {detail.jumlah_anggota >= 2 && (
                 <div>
                   <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Berkas Anggota 1</p>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <ImageThumb src={detail.foto_anggota_1} label="Pas Foto A1" />
                     <ImageThumb src={detail.kartu_pelajar_anggota_1} label="Kartu Pelajar A1" />
-                    <ImageThumb src={detail.bukti_follow_anggota_1} label="Bukti Follow A1" />
+                    <ImageThumb src={detail.bukti_follow_boc_anggota_1} label="Follow BoC A1" />
+                    <ImageThumb src={detail.bukti_follow_yv_anggota_1} label="Follow YV A1" />
                   </div>
                 </div>
               )}
               {detail.jumlah_anggota === 3 && (
                 <div>
                   <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Berkas Anggota 2</p>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <ImageThumb src={detail.foto_anggota_2} label="Pas Foto A2" />
                     <ImageThumb src={detail.kartu_pelajar_anggota_2} label="Kartu Pelajar A2" />
-                    <ImageThumb src={detail.bukti_follow_anggota_2} label="Bukti Follow A2" />
+                    <ImageThumb src={detail.bukti_follow_boc_anggota_2} label="Follow BoC A2" />
+                    <ImageThumb src={detail.bukti_follow_yv_anggota_2} label="Follow YV A2" />
                   </div>
                 </div>
               )}

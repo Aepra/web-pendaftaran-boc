@@ -130,13 +130,16 @@ const EMPTY_FORM: RegistrationFormData = {
   notes: "",
   foto_ketua: "",
   kartu_pelajar_ketua: "",
-  bukti_follow_ketua: "",
+  bukti_follow_boc_ketua: "",
+  bukti_follow_yv_ketua: "",
   foto_anggota_1: "",
   kartu_pelajar_anggota_1: "",
-  bukti_follow_anggota_1: "",
+  bukti_follow_boc_anggota_1: "",
+  bukti_follow_yv_anggota_1: "",
   foto_anggota_2: "",
   kartu_pelajar_anggota_2: "",
-  bukti_follow_anggota_2: "",
+  bukti_follow_boc_anggota_2: "",
+  bukti_follow_yv_anggota_2: "",
   bukti_bayar: "",
 };
 
@@ -222,20 +225,20 @@ export default function RegisterPage() {
 
     if (!d.foto_ketua) return "Pas foto ketua wajib diunggah.";
     if (!d.kartu_pelajar_ketua) return "Kartu pelajar ketua wajib diunggah.";
-    if (!d.bukti_follow_ketua) return "Bukti follow Instagram ketua wajib diunggah.";
+    if (!d.bukti_follow_boc_ketua || !d.bukti_follow_yv_ketua) return "Bukti follow Instagram BoC & Youthverse ketua wajib diunggah.";
 
     if (d.memberCount >= 2) {
       if (!d.nama_anggota_1.trim() || !d.whatsapp_anggota_1.trim())
         return "Nama dan WhatsApp Anggota 1 wajib diisi.";
-      if (!d.foto_anggota_1 || !d.kartu_pelajar_anggota_1 || !d.bukti_follow_anggota_1)
-        return "Berkas Anggota 1 (Foto, Kartu Pelajar, Bukti Follow) wajib dilengkapi.";
+      if (!d.foto_anggota_1 || !d.kartu_pelajar_anggota_1 || !d.bukti_follow_boc_anggota_1 || !d.bukti_follow_yv_anggota_1)
+        return "Berkas Anggota 1 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
     }
 
     if (d.memberCount === 3) {
       if (!d.nama_anggota_2.trim() || !d.whatsapp_anggota_2.trim())
         return "Nama dan WhatsApp Anggota 2 wajib diisi.";
-      if (!d.foto_anggota_2 || !d.kartu_pelajar_anggota_2 || !d.bukti_follow_anggota_2)
-        return "Berkas Anggota 2 (Foto, Kartu Pelajar, Bukti Follow) wajib dilengkapi.";
+      if (!d.foto_anggota_2 || !d.kartu_pelajar_anggota_2 || !d.bukti_follow_boc_anggota_2 || !d.bukti_follow_yv_anggota_2)
+        return "Berkas Anggota 2 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
     }
 
     if (!d.bukti_bayar) return "Bukti pembayaran QRIS wajib diunggah.";
@@ -283,19 +286,22 @@ export default function RegisterPage() {
       // Buat daftar file yang perlu diupload
       type FileUpload = { key: string; base64: string; label: string };
       const filesToUpload: FileUpload[] = [
-        { key: "foto_ketua",           base64: d.foto_ketua,           label: "Foto Ketua" },
-        { key: "kartu_pelajar_ketua",  base64: d.kartu_pelajar_ketua,  label: "Kartu Pelajar Ketua" },
-        { key: "bukti_follow_ketua",   base64: d.bukti_follow_ketua,   label: "Bukti Follow Ketua" },
-        { key: "bukti_bayar",          base64: d.bukti_bayar,          label: "Bukti Pembayaran" },
+        { key: "foto_ketua",             base64: d.foto_ketua,             label: "Foto Ketua" },
+        { key: "kartu_pelajar_ketua",    base64: d.kartu_pelajar_ketua,    label: "Kartu Pelajar Ketua" },
+        { key: "bukti_follow_boc_ketua", base64: d.bukti_follow_boc_ketua, label: "Bukti Follow BoC Ketua" },
+        { key: "bukti_follow_yv_ketua",  base64: d.bukti_follow_yv_ketua,  label: "Bukti Follow YV Ketua" },
+        { key: "bukti_bayar",            base64: d.bukti_bayar,            label: "Bukti Pembayaran" },
         ...(d.memberCount >= 2 ? [
-          { key: "foto_anggota_1",          base64: d.foto_anggota_1,          label: "Foto Anggota 1" },
-          { key: "kartu_pelajar_anggota_1", base64: d.kartu_pelajar_anggota_1, label: "Kartu Pelajar Anggota 1" },
-          { key: "bukti_follow_anggota_1",  base64: d.bukti_follow_anggota_1,  label: "Bukti Follow Anggota 1" },
+          { key: "foto_anggota_1",             base64: d.foto_anggota_1,             label: "Foto Anggota 1" },
+          { key: "kartu_pelajar_anggota_1",    base64: d.kartu_pelajar_anggota_1,    label: "Kartu Pelajar Anggota 1" },
+          { key: "bukti_follow_boc_anggota_1", base64: d.bukti_follow_boc_anggota_1, label: "Bukti Follow BoC Anggota 1" },
+          { key: "bukti_follow_yv_anggota_1",  base64: d.bukti_follow_yv_anggota_1,  label: "Bukti Follow YV Anggota 1" },
         ] : []),
         ...(d.memberCount === 3 ? [
-          { key: "foto_anggota_2",          base64: d.foto_anggota_2,          label: "Foto Anggota 2" },
-          { key: "kartu_pelajar_anggota_2", base64: d.kartu_pelajar_anggota_2, label: "Kartu Pelajar Anggota 2" },
-          { key: "bukti_follow_anggota_2",  base64: d.bukti_follow_anggota_2,  label: "Bukti Follow Anggota 2" },
+          { key: "foto_anggota_2",             base64: d.foto_anggota_2,             label: "Foto Anggota 2" },
+          { key: "kartu_pelajar_anggota_2",    base64: d.kartu_pelajar_anggota_2,    label: "Kartu Pelajar Anggota 2" },
+          { key: "bukti_follow_boc_anggota_2", base64: d.bukti_follow_boc_anggota_2, label: "Bukti Follow BoC Anggota 2" },
+          { key: "bukti_follow_yv_anggota_2",  base64: d.bukti_follow_yv_anggota_2,  label: "Bukti Follow YV Anggota 2" },
         ] : []),
       ];
 
@@ -323,16 +329,19 @@ export default function RegisterPage() {
         nama_anggota_2: d.memberCount === 3 ? d.nama_anggota_2 : "",
         whatsapp_anggota_2: d.memberCount === 3 ? d.whatsapp_anggota_2 : "",
         notes: d.notes,
-        foto_ketua:               uploadedUrls["foto_ketua"] || "",
-        kartu_pelajar_ketua:      uploadedUrls["kartu_pelajar_ketua"] || "",
-        bukti_follow_ketua:       uploadedUrls["bukti_follow_ketua"] || "",
-        foto_anggota_1:           uploadedUrls["foto_anggota_1"] || "",
-        kartu_pelajar_anggota_1:  uploadedUrls["kartu_pelajar_anggota_1"] || "",
-        bukti_follow_anggota_1:   uploadedUrls["bukti_follow_anggota_1"] || "",
-        foto_anggota_2:           uploadedUrls["foto_anggota_2"] || "",
-        kartu_pelajar_anggota_2:  uploadedUrls["kartu_pelajar_anggota_2"] || "",
-        bukti_follow_anggota_2:   uploadedUrls["bukti_follow_anggota_2"] || "",
-        bukti_bayar:              uploadedUrls["bukti_bayar"] || "",
+        foto_ketua:                 uploadedUrls["foto_ketua"] || "",
+        kartu_pelajar_ketua:        uploadedUrls["kartu_pelajar_ketua"] || "",
+        bukti_follow_boc_ketua:     uploadedUrls["bukti_follow_boc_ketua"] || "",
+        bukti_follow_yv_ketua:      uploadedUrls["bukti_follow_yv_ketua"] || "",
+        foto_anggota_1:             uploadedUrls["foto_anggota_1"] || "",
+        kartu_pelajar_anggota_1:    uploadedUrls["kartu_pelajar_anggota_1"] || "",
+        bukti_follow_boc_anggota_1: uploadedUrls["bukti_follow_boc_anggota_1"] || "",
+        bukti_follow_yv_anggota_1:  uploadedUrls["bukti_follow_yv_anggota_1"] || "",
+        foto_anggota_2:             uploadedUrls["foto_anggota_2"] || "",
+        kartu_pelajar_anggota_2:    uploadedUrls["kartu_pelajar_anggota_2"] || "",
+        bukti_follow_boc_anggota_2: uploadedUrls["bukti_follow_boc_anggota_2"] || "",
+        bukti_follow_yv_anggota_2:  uploadedUrls["bukti_follow_yv_anggota_2"] || "",
+        bukti_bayar:                uploadedUrls["bukti_bayar"] || "",
       });
 
       setUploadProgress(null);
@@ -605,7 +614,7 @@ export default function RegisterPage() {
 
             <div className="bg-[#FFF6E9]/60 p-5 rounded-2xl border border-[#002D61]/8">
               <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Ketua</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                 <div>
                   <label className={labelCls}>Pas Foto <Req /></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_ketua")} disabled={isLoading} className={fileCls} />
@@ -617,9 +626,14 @@ export default function RegisterPage() {
                   <UploadBadge value={d.kartu_pelajar_ketua} />
                 </div>
                 <div>
-                  <label className={labelCls}>Bukti Follow IG <Req /></label>
-                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_ketua")} disabled={isLoading} className={fileCls} />
-                  <UploadBadge value={d.bukti_follow_ketua} />
+                  <label className={labelCls}>Bukti Follow BoC <Req /></label>
+                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_ketua")} disabled={isLoading} className={fileCls} />
+                  <UploadBadge value={d.bukti_follow_boc_ketua} />
+                </div>
+                <div>
+                  <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
+                  <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_ketua")} disabled={isLoading} className={fileCls} />
+                  <UploadBadge value={d.bukti_follow_yv_ketua} />
                 </div>
               </div>
             </div>
@@ -644,7 +658,7 @@ export default function RegisterPage() {
               </div>
               <div className="bg-[#FFF6E9]/60 p-5 rounded-2xl border border-[#002D61]/8">
                 <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Anggota 1</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                   <div>
                     <label className={labelCls}>Pas Foto <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_anggota_1")} disabled={isLoading} className={fileCls} />
@@ -656,9 +670,14 @@ export default function RegisterPage() {
                     <UploadBadge value={d.kartu_pelajar_anggota_1} />
                   </div>
                   <div>
-                    <label className={labelCls}>Bukti Follow IG <Req /></label>
-                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_anggota_1")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.bukti_follow_anggota_1} />
+                    <label className={labelCls}>Bukti Follow BoC <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_anggota_1")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.bukti_follow_boc_anggota_1} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.bukti_follow_yv_anggota_1} />
                   </div>
                 </div>
               </div>
@@ -684,7 +703,7 @@ export default function RegisterPage() {
               </div>
               <div className="bg-[#FFF6E9]/60 p-5 rounded-2xl border border-[#002D61]/8">
                 <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Anggota 2</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                   <div>
                     <label className={labelCls}>Pas Foto <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_anggota_2")} disabled={isLoading} className={fileCls} />
@@ -696,9 +715,14 @@ export default function RegisterPage() {
                     <UploadBadge value={d.kartu_pelajar_anggota_2} />
                   </div>
                   <div>
-                    <label className={labelCls}>Bukti Follow IG <Req /></label>
-                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_anggota_2")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.bukti_follow_anggota_2} />
+                    <label className={labelCls}>Bukti Follow BoC <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_anggota_2")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.bukti_follow_boc_anggota_2} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fileCls} />
+                    <UploadBadge value={d.bukti_follow_yv_anggota_2} />
                   </div>
                 </div>
               </div>
@@ -736,7 +760,7 @@ export default function RegisterPage() {
                 {[
                   { label: "Data tim & instansi sudah diisi", ok: !!(d.nama_tim && d.institution) },
                   { label: "Data ketua sudah lengkap", ok: !!(d.leaderName && d.whatsapp && d.email) },
-                  { label: "Berkas ketua sudah diunggah", ok: !!(d.foto_ketua && d.kartu_pelajar_ketua && d.bukti_follow_ketua) },
+                  { label: "Berkas ketua sudah diunggah", ok: !!(d.foto_ketua && d.kartu_pelajar_ketua && d.bukti_follow_boc_ketua && d.bukti_follow_yv_ketua) },
                   { label: "Bukti pembayaran QRIS sudah diunggah", ok: !!d.bukti_bayar },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2">

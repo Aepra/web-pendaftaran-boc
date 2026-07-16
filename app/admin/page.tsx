@@ -404,29 +404,32 @@ function AdminDetailPanel({
         )}
 
         <p className="text-[10px] font-bold text-[#002D61] uppercase mb-2">Ketua — {detail.nama_ketua}</p>
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
           <ImageThumb src={detail.foto_ketua} label="Pas Foto Ketua" />
           <ImageThumb src={detail.kartu_pelajar_ketua} label="KTP/Kartu Pelajar" />
-          <ImageThumb src={detail.bukti_follow_ketua} label="Bukti Follow IG" />
+          <ImageThumb src={detail.bukti_follow_boc_ketua} label="Follow BoC IG" />
+          <ImageThumb src={detail.bukti_follow_yv_ketua} label="Follow YV IG" />
         </div>
 
         {detail.jumlah_anggota >= 2 && (
           <>
             <p className="text-[10px] font-bold text-[#002D61] uppercase mb-2">Anggota 1 — {detail.nama_anggota_1}</p>
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
               <ImageThumb src={detail.foto_anggota_1} label="Pas Foto A1" />
               <ImageThumb src={detail.kartu_pelajar_anggota_1} label="Kartu Pelajar A1" />
-              <ImageThumb src={detail.bukti_follow_anggota_1} label="Bukti Follow A1" />
+              <ImageThumb src={detail.bukti_follow_boc_anggota_1} label="Follow BoC A1" />
+              <ImageThumb src={detail.bukti_follow_yv_anggota_1} label="Follow YV A1" />
             </div>
           </>
         )}
         {detail.jumlah_anggota === 3 && (
           <>
             <p className="text-[10px] font-bold text-[#002D61] uppercase mb-2">Anggota 2 — {detail.nama_anggota_2}</p>
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
               <ImageThumb src={detail.foto_anggota_2} label="Pas Foto A2" />
               <ImageThumb src={detail.kartu_pelajar_anggota_2} label="Kartu Pelajar A2" />
-              <ImageThumb src={detail.bukti_follow_anggota_2} label="Bukti Follow A2" />
+              <ImageThumb src={detail.bukti_follow_boc_anggota_2} label="Follow BoC A2" />
+              <ImageThumb src={detail.bukti_follow_yv_anggota_2} label="Follow YV A2" />
             </div>
           </>
         )}
