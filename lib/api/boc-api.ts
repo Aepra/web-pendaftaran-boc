@@ -216,6 +216,48 @@ export async function updateRegistrationStatus(
 }
 
 // ======================
+// Admin API (User Management)
+// ======================
+
+/** Ambil daftar email admin dari Google Sheet. */
+export async function getAdmins(): Promise<string[]> {
+  const response = await callApi<BocApiResponse<{ email: string }[]>>({
+    action: "admin_get_admins",
+  });
+
+  if (response.status !== "success" || !Array.isArray(response.data)) {
+    return [];
+  }
+  return response.data.map((d) => d.email);
+}
+
+/** Tambahkan email sebagai admin. */
+export async function addAdmin(email: string): Promise<{ success: boolean; message?: string }> {
+  try {
+    const response = await callApi<{ status: string; message?: string }>({
+      action: "admin_add_admin",
+      email,
+    });
+    return { success: response.status === "success", message: response.message };
+  } catch (err) {
+    return { success: false, message: "Gagal menghubungi server." };
+  }
+}
+
+/** Hapus email dari daftar admin. */
+export async function removeAdmin(email: string): Promise<{ success: boolean; message?: string }> {
+  try {
+    const response = await callApi<{ status: string; message?: string }>({
+      action: "admin_remove_admin",
+      email,
+    });
+    return { success: response.status === "success", message: response.message };
+  } catch (err) {
+    return { success: false, message: "Gagal menghubungi server." };
+  }
+}
+
+// ======================
 // Mock Data (Dev Fallback — untuk admin getAllRegistrations saja)
 // ======================
 

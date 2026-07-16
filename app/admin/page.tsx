@@ -7,6 +7,9 @@ import {
   getAllRegistrations,
   adminGetRegistrationDetail,
   updateRegistrationStatus,
+  getAdmins,
+  addAdmin,
+  removeAdmin,
 } from "@/lib/api/boc-api";
 import type { RegistrationHistoryItem, RegistrationDetail, ParticipantStatus } from "@/types";
 
@@ -452,11 +455,141 @@ function AdminDetailPanel({
 }
 
 // ======================
+// Admin Management Panel
+// ======================
+function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
+  const [admins, setAdmins] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newAdmin, setNewAdmin] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const loadAdmins = useCallback(async () => {
+    setLoading(true);
+    const data = await getAdmins();
+    setAdmins(data);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { loadAdmins(); }, [loadAdmins]);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdmin) return;
+    setLoading(true);
+    setMsg("");
+    const res = await addAdmin(newAdmin);
+    setMsg(res.message || (res.success ? "Admin berhasil ditambahkan" : "Gagal menambahkan admin"));
+    if (res.success) {
+      setNewAdmin("");
+      loadAdmins();
+    } else {
+      setLoading(false);
+    }
+  };
+
+  const handleRemove = async (email: string) => {
+    if (!confirm(`Hapus ${email} dari admin?`)) return;
+    setLoading(true);
+    setMsg("");
+    const res = await removeAdmin(email);
+    setMsg(res.message || (res.success ? "Admin berhasil dihapus" : "Gagal menghapus admin"));
+    if (res.success) {
+      loadAdmins();
+    } else {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#002D61]/10 shadow-sm p-6 max-w-3xl">
+      <h2 className="text-xl font-extrabold text-[#002D61] mb-4">Manajemen Admin</h2>
+      
+      {!isSuperAdmin && (
+        <div className="mb-6 p-4 bg-amber-50 text-amber-700 rounded-xl text-sm border border-amber-200">
+          <strong>Perhatian:</strong> Anda bukan Super Admin. Hanya Super Admin (yang dikonfigurasi di server) yang memiliki fitur perlindungan anti-hapus mutlak. Pastikan berhati-hati saat menambah/menghapus admin.
+        </div>
+      )}
+
+      {msg && (
+        <div className="mb-6 p-3 bg-blue-50 text-blue-700 rounded-xl text-sm font-semibold border border-blue-200">
+          {msg}
+        </div>
+      )}
+
+      <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3 mb-8">
+        <input
+          type="email"
+          required
+          placeholder="Masukkan alamat Gmail admin baru..."
+          value={newAdmin}
+          onChange={(e) => setNewAdmin(e.target.value)}
+          disabled={loading}
+          className="flex-1 p-3 border border-[#002D61]/15 rounded-xl bg-[#FFF6E9]/50 text-[#002D61] placeholder:text-[#002D61]/40 focus:outline-none focus:border-[#700702]"
+        />
+        <button
+          type="submit"
+          disabled={loading || !newAdmin}
+          className="px-6 py-3 bg-[#002D61] hover:bg-[#002D61]/90 text-white font-bold rounded-xl transition disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading ? "Memproses..." : "Tambahkan Admin"}
+        </button>
+      </form>
+
+      <div className="space-y-3">
+        <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-2">Daftar Admin Aktif</p>
+        
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#700702] flex items-center justify-center text-white font-bold text-xs">S</div>
+            <div>
+              <p className="text-sm font-bold text-[#002D61]">{ADMIN_EMAIL}</p>
+              <p className="text-[10px] font-semibold text-[#700702] uppercase tracking-wider">Super Admin (Server Config)</p>
+            </div>
+          </div>
+        </div>
+
+        {loading && admins.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4 text-center">Memuat data admin...</p>
+        ) : (
+          admins.map((email) => (
+            <div key={email} className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#002D61]/10 flex items-center justify-center text-[#002D61] font-bold text-xs">
+                  {email[0].toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-[#002D61]">{email}</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Admin Tambahan</p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleRemove(email)}
+                disabled={loading}
+                className="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+              >
+                Hapus
+              </button>
+            </div>
+          ))
+        )}
+        {admins.length === 0 && !loading && (
+          <p className="text-sm text-gray-400 py-4 text-center">Belum ada admin tambahan.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ======================
 // Main Admin Dashboard
 // ======================
 export default function AdminDashboard() {
   const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
+
+  const [activeTab, setActiveTab] = useState<"pendaftaran" | "manajemen">("pendaftaran");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   const [registrations, setRegistrations] = useState<RegistrationHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -465,21 +598,45 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [toastMsg, setToastMsg] = useState("");
 
-  // Auth guard
+  // Auth guard with multi-admin support
   useEffect(() => {
-    if (!isAuthenticated) { router.replace("/login"); return; }
-    if (user && user.email !== ADMIN_EMAIL) router.replace("/");
+    if (!isAuthenticated) { 
+      router.replace("/login"); 
+      return; 
+    }
+    if (!user) return;
+    
+    // Immediately allow Super Admin
+    if (user.email === ADMIN_EMAIL) {
+      setIsAdmin(true);
+      setCheckingAuth(false);
+      return;
+    }
+
+    // Check remote admin list
+    getAdmins().then(admins => {
+      if (user.email && admins.includes(user.email)) {
+        setIsAdmin(true);
+      } else {
+        router.replace("/");
+      }
+      setCheckingAuth(false);
+    });
   }, [isAuthenticated, user, router]);
 
   const loadData = useCallback(async () => {
-    if (!isAuthenticated || !user || user.email !== ADMIN_EMAIL) return;
+    if (!isAdmin) return;
     setLoading(true);
     const data = await getAllRegistrations();
     setRegistrations(data);
     setLoading(false);
-  }, [isAuthenticated, user]);
+  }, [isAdmin]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { 
+    if (isAdmin && activeTab === "pendaftaran") {
+      loadData(); 
+    }
+  }, [isAdmin, activeTab, loadData]);
 
   const showToast = (msg: string) => { setToastMsg(msg); setTimeout(() => setToastMsg(""), 3500); };
 
@@ -490,7 +647,19 @@ export default function AdminDashboard() {
     showToast(`✅ Status berhasil diubah ke ${status === "MENUNGGU" ? "Menunggu" : status === "DISETUJUI" ? "Disetujui" : "Ditolak"}.`);
   };
 
-  if (!isAuthenticated || !user || user.email !== ADMIN_EMAIL) return null;
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#FFF6E9] flex flex-col items-center justify-center text-[#002D61]">
+        <svg className="animate-spin h-10 w-10 mb-4 opacity-50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <p className="font-semibold text-lg animate-pulse">Memverifikasi akses Admin...</p>
+      </div>
+    );
+  }
+
+  if (!isAdmin || !user) return null;
 
   // Stats
   const stats = {
@@ -535,13 +704,34 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <nav className="flex-1 p-4 space-y-1">
-            <div className="px-3 py-2 rounded-xl bg-white/10 border border-white/10 flex items-center gap-3">
-              <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <nav className="flex-1 p-4 space-y-2">
+            <button
+              onClick={() => setActiveTab("pendaftaran")}
+              className={`w-full text-left px-4 py-3 rounded-xl border flex items-center gap-3 transition-colors ${
+                activeTab === "pendaftaran" 
+                ? "bg-white/10 border-white/20 text-white" 
+                : "bg-transparent border-transparent text-white/70 hover:bg-white/5"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              <span className="text-sm font-semibold">Pendaftaran</span>
-            </div>
+              <span className="text-sm font-bold">Pendaftaran</span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab("manajemen")}
+              className={`w-full text-left px-4 py-3 rounded-xl border flex items-center gap-3 transition-colors ${
+                activeTab === "manajemen" 
+                ? "bg-white/10 border-white/20 text-white" 
+                : "bg-transparent border-transparent text-white/70 hover:bg-white/5"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <span className="text-sm font-bold">Manajemen Admin</span>
+            </button>
           </nav>
 
           <div className="p-4 border-t border-white/10">
@@ -587,137 +777,143 @@ export default function AdminDashboard() {
           </header>
 
           <main className="flex-1 p-4 md:p-8 space-y-6">
-            {/* Title */}
-            <div>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-[#002D61]">Dashboard Pendaftaran</h1>
-              <p className="text-sm text-[#002D61]/60 mt-1">Verifikasi dan kelola data peserta Battle of Champions III 2026</p>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { label: "Total Pendaftar", value: stats.total, color: "bg-[#002D61]" },
-                { label: "Menunggu", value: stats.menunggu, color: "bg-amber-500" },
-                { label: "Disetujui", value: stats.disetujui, color: "bg-emerald-600" },
-                { label: "Ditolak", value: stats.ditolak, color: "bg-red-600" },
-              ].map((s) => (
-                <div key={s.label} className={`${s.color} text-white rounded-2xl p-5 shadow-md`}>
-                  <div className="text-3xl font-extrabold">{loading ? "–" : s.value}</div>
-                  <div className="text-xs font-semibold opacity-80 mt-1 uppercase tracking-wide">{s.label}</div>
+            {activeTab === "manajemen" ? (
+              <AdminManagementPanel isSuperAdmin={user.email === ADMIN_EMAIL} />
+            ) : (
+              <>
+                {/* Title */}
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-[#002D61]">Dashboard Pendaftaran</h1>
+                  <p className="text-sm text-[#002D61]/60 mt-1">Verifikasi dan kelola data peserta Battle of Champions III 2026</p>
                 </div>
-              ))}
-            </div>
 
-            {/* Table + Detail */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              {/* Left: List */}
-              <div className="xl:col-span-2 bg-white rounded-2xl border border-[#002D61]/10 shadow-sm overflow-hidden">
-                {/* Toolbar */}
-                <div className="px-5 py-4 border-b border-[#002D61]/8 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                  <h2 className="text-base font-extrabold text-[#002D61]">
-                    Daftar Peserta ({filtered.length})
-                  </h2>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* Search */}
-                    <div className="relative">
-                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002D61]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      <input
-                        type="text"
-                        placeholder="Nama tim, ketua, sekolah..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9 pr-3 py-2 text-xs rounded-lg border border-[#002D61]/15 bg-[#FFF6E9] text-[#002D61] placeholder:text-[#002D61]/40 focus:outline-none focus:border-[#002D61]/40 w-52"
-                      />
+                {/* Stats */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { label: "Total Pendaftar", value: stats.total, color: "bg-[#002D61]" },
+                    { label: "Menunggu", value: stats.menunggu, color: "bg-amber-500" },
+                    { label: "Disetujui", value: stats.disetujui, color: "bg-emerald-600" },
+                    { label: "Ditolak", value: stats.ditolak, color: "bg-red-600" },
+                  ].map((s) => (
+                    <div key={s.label} className={`${s.color} text-white rounded-2xl p-5 shadow-md`}>
+                      <div className="text-3xl font-extrabold">{loading ? "–" : s.value}</div>
+                      <div className="text-xs font-semibold opacity-80 mt-1 uppercase tracking-wide">{s.label}</div>
                     </div>
-                    {/* Filter Tabs */}
-                    <div className="flex bg-[#FFF6E9] rounded-lg border border-[#002D61]/10 p-0.5">
-                      {([["ALL", "Semua"], ["MENUNGGU", "Menunggu"], ["DISETUJUI", "Disetujui"], ["DITOLAK", "Ditolak"]] as const).map(([val, lbl]) => (
-                        <button
-                          key={val}
-                          onClick={() => setFilterStatus(val)}
-                          className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filterStatus === val ? "bg-[#002D61] text-white shadow-sm" : "text-[#002D61]/60 hover:text-[#002D61]"}`}
-                        >
-                          {lbl}
-                        </button>
-                      ))}
+                  ))}
+                </div>
+
+                {/* Table + Detail */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  {/* Left: List */}
+                  <div className="xl:col-span-2 bg-white rounded-2xl border border-[#002D61]/10 shadow-sm overflow-hidden">
+                    {/* Toolbar */}
+                    <div className="px-5 py-4 border-b border-[#002D61]/8 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                      <h2 className="text-base font-extrabold text-[#002D61]">
+                        Daftar Peserta ({filtered.length})
+                      </h2>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Search */}
+                        <div className="relative">
+                          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#002D61]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                          <input
+                            type="text"
+                            placeholder="Nama tim, ketua, sekolah..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-9 pr-3 py-2 text-xs rounded-lg border border-[#002D61]/15 bg-[#FFF6E9] text-[#002D61] placeholder:text-[#002D61]/40 focus:outline-none focus:border-[#002D61]/40 w-52"
+                          />
+                        </div>
+                        {/* Filter Tabs */}
+                        <div className="flex bg-[#FFF6E9] rounded-lg border border-[#002D61]/10 p-0.5">
+                          {([["ALL", "Semua"], ["MENUNGGU", "Menunggu"], ["DISETUJUI", "Disetujui"], ["DITOLAK", "Ditolak"]] as const).map(([val, lbl]) => (
+                            <button
+                              key={val}
+                              onClick={() => setFilterStatus(val)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filterStatus === val ? "bg-[#002D61] text-white shadow-sm" : "text-[#002D61]/60 hover:text-[#002D61]"}`}
+                            >
+                              {lbl}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card List */}
+                    <div className="divide-y divide-[#002D61]/5">
+                      {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-[#002D61]/40">
+                          <svg className="animate-spin h-7 w-7 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          <p className="text-sm">Memuat data...</p>
+                        </div>
+                      ) : filtered.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-[#002D61]/40">
+                          <svg className="w-10 h-10 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                          <p className="text-sm font-medium">Tidak ada data ditemukan.</p>
+                        </div>
+                      ) : (
+                        filtered.map((reg) => (
+                          <button
+                            key={reg.registration_id}
+                            type="button"
+                            onClick={() => setSelectedId(reg.registration_id === selectedId ? null : reg.registration_id)}
+                            className={`w-full text-left px-5 py-4 hover:bg-[#002D61]/3 transition-colors ${selectedId === reg.registration_id ? "bg-[#002D61]/5 border-l-4 border-l-[#700702]" : ""}`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-[#002D61] text-sm">{reg.nama_tim}</p>
+                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-[#002D61]/60">
+                                  <span>{reg.nama_ketua}</span>
+                                  <span>·</span>
+                                  <span className="truncate max-w-[160px]">{reg.instansi}</span>
+                                  <span>·</span>
+                                  <span>{reg.jumlah_anggota} orang</span>
+                                  <span>·</span>
+                                  <span>{formatDate(reg.created_at)}</span>
+                                </div>
+                              </div>
+                              <StatusBadge status={reg.participant_status} />
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Detail Panel */}
+                  <div className="xl:col-span-1">
+                    <div className="sticky top-8 bg-white rounded-2xl border border-[#002D61]/10 shadow-sm overflow-hidden">
+                      {selectedId ? (
+                        <div className="max-h-[85vh] overflow-y-auto p-5">
+                          <AdminDetailPanel
+                            key={selectedId}
+                            regId={selectedId}
+                            onStatusUpdate={handleStatusUpdate}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                          <div className="w-16 h-16 rounded-2xl bg-[#002D61]/8 flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-[#002D61]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                          </div>
+                          <p className="text-sm font-semibold text-[#002D61]/50">
+                            Pilih peserta untuk melihat detail & berkas
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-
-                {/* Card List */}
-                <div className="divide-y divide-[#002D61]/5">
-                  {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-[#002D61]/40">
-                      <svg className="animate-spin h-7 w-7 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      <p className="text-sm">Memuat data...</p>
-                    </div>
-                  ) : filtered.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-[#002D61]/40">
-                      <svg className="w-10 h-10 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      <p className="text-sm font-medium">Tidak ada data ditemukan.</p>
-                    </div>
-                  ) : (
-                    filtered.map((reg) => (
-                      <button
-                        key={reg.registration_id}
-                        type="button"
-                        onClick={() => setSelectedId(reg.registration_id === selectedId ? null : reg.registration_id)}
-                        className={`w-full text-left px-5 py-4 hover:bg-[#002D61]/3 transition-colors ${selectedId === reg.registration_id ? "bg-[#002D61]/5 border-l-4 border-l-[#700702]" : ""}`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-[#002D61] text-sm">{reg.nama_tim}</p>
-                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-[#002D61]/60">
-                              <span>{reg.nama_ketua}</span>
-                              <span>·</span>
-                              <span className="truncate max-w-[160px]">{reg.instansi}</span>
-                              <span>·</span>
-                              <span>{reg.jumlah_anggota} orang</span>
-                              <span>·</span>
-                              <span>{formatDate(reg.created_at)}</span>
-                            </div>
-                          </div>
-                          <StatusBadge status={reg.participant_status} />
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Right: Detail Panel */}
-              <div className="xl:col-span-1">
-                <div className="sticky top-8 bg-white rounded-2xl border border-[#002D61]/10 shadow-sm overflow-hidden">
-                  {selectedId ? (
-                    <div className="max-h-[85vh] overflow-y-auto p-5">
-                      <AdminDetailPanel
-                        key={selectedId}
-                        regId={selectedId}
-                        onStatusUpdate={handleStatusUpdate}
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-                      <div className="w-16 h-16 rounded-2xl bg-[#002D61]/8 flex items-center justify-center mb-4">
-                        <svg className="w-8 h-8 text-[#002D61]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                      </div>
-                      <p className="text-sm font-semibold text-[#002D61]/50">
-                        Pilih peserta untuk melihat detail & berkas
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </main>
         </div>
       </div>
