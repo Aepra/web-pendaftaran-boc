@@ -761,22 +761,47 @@ export default function AdminDashboard() {
           </div>
         </aside>
 
-        {/* Main */}
-        <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-          {/* Mobile Header */}
-          <header className="lg:hidden sticky top-0 z-20 bg-[#002D61] text-white px-4 py-4 flex items-center justify-between shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#700702] flex items-center justify-center font-black text-sm">B</div>
-              <span className="font-extrabold text-sm">BoC III Admin</span>
-            </div>
-            <button onClick={logout} className="text-white/70 hover:text-white transition">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
-          </header>
+          <main className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+            {/* Mobile Header */}
+            <header className="lg:hidden sticky top-0 z-20 bg-[#002D61] text-white px-4 py-4 flex items-center justify-between shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#700702] flex items-center justify-center font-black text-sm">B</div>
+                <span className="font-extrabold text-sm">BoC III Admin</span>
+              </div>
+              <button onClick={logout} className="text-white/70 hover:text-white transition">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </header>
 
-          <main className="flex-1 p-4 md:p-8 space-y-6">
+            {/* Mobile Tab Switcher */}
+            <div className="lg:hidden px-4 pt-4 pb-1">
+              <div className="flex bg-white rounded-xl shadow-sm border border-[#002D61]/10 p-1">
+                <button
+                  onClick={() => setActiveTab("pendaftaran")}
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-colors ${
+                    activeTab === "pendaftaran" 
+                    ? "bg-[#002D61] text-white" 
+                    : "text-[#002D61]/60 hover:bg-gray-50"
+                  }`}
+                >
+                  Pendaftaran
+                </button>
+                <button
+                  onClick={() => setActiveTab("manajemen")}
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-colors ${
+                    activeTab === "manajemen" 
+                    ? "bg-[#002D61] text-white" 
+                    : "text-[#002D61]/60 hover:bg-gray-50"
+                  }`}
+                >
+                  Manajemen Admin
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 p-4 md:p-8 space-y-6">
             {activeTab === "manajemen" ? (
               <AdminManagementPanel isSuperAdmin={user.email === ADMIN_EMAIL} />
             ) : (
@@ -914,6 +939,7 @@ export default function AdminDashboard() {
                 </div>
               </>
             )}
+            </div>
           </main>
         </div>
       </div>
