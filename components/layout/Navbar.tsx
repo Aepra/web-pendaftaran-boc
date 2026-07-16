@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { getAdmins } from "@/lib/api/boc-api";
 
 const NAV_LINKS_GUEST = [
   { href: "/", label: "Home" },
@@ -16,12 +17,35 @@ const NAV_LINKS_AUTH = [
   { href: "/profile", label: "Profil" },
 ];
 
+const NAV_LINKS_ADMIN = [
+  { href: "/admin", label: "Dashboard" },
+  { href: "/profile", label: "Profil" },
+];
+
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const links = isAuthenticated ? NAV_LINKS_AUTH : NAV_LINKS_GUEST;
+  useEffect(() => {
+    if (!isAuthenticated || !user?.email) return;
+    const superAdmin = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "abelekaputra05@gmail.com";
+    if (user.email === superAdmin) {
+      setIsAdmin(true);
+      return;
+    }
+    // Check dynamic admins
+    getAdmins().then(admins => {
+      if (admins.includes(user.email!)) {
+        setIsAdmin(true);
+      }
+    }).catch(() => {});
+  }, [isAuthenticated, user]);
+
+  const links = isAuthenticated 
+    ? (isAdmin ? NAV_LINKS_ADMIN : NAV_LINKS_AUTH) 
+    : NAV_LINKS_GUEST;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-[#002D61]/10 bg-white/90 backdrop-blur-md shadow-sm">
