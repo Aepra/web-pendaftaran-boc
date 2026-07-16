@@ -90,13 +90,16 @@ export async function registerParticipant(payload: {
   notes: string;
   foto_ketua: string;
   kartu_pelajar_ketua: string;
-  bukti_follow_ketua: string;
+  bukti_follow_boc_ketua: string;
+  bukti_follow_yv_ketua: string;
   foto_anggota_1: string;
   kartu_pelajar_anggota_1: string;
-  bukti_follow_anggota_1: string;
+  bukti_follow_boc_anggota_1: string;
+  bukti_follow_yv_anggota_1: string;
   foto_anggota_2: string;
   kartu_pelajar_anggota_2: string;
-  bukti_follow_anggota_2: string;
+  bukti_follow_boc_anggota_2: string;
+  bukti_follow_yv_anggota_2: string;
   bukti_bayar: string;
 }): Promise<{ status: "success" | "error"; message?: string; data?: RegistrationData }> {
   return callApi({
@@ -149,13 +152,16 @@ export async function updateRegistration(payload: {
   notes: string;
   foto_ketua: string;
   kartu_pelajar_ketua: string;
-  bukti_follow_ketua: string;
+  bukti_follow_boc_ketua: string;
+  bukti_follow_yv_ketua: string;
   foto_anggota_1: string;
   kartu_pelajar_anggota_1: string;
-  bukti_follow_anggota_1: string;
+  bukti_follow_boc_anggota_1: string;
+  bukti_follow_yv_anggota_1: string;
   foto_anggota_2: string;
   kartu_pelajar_anggota_2: string;
-  bukti_follow_anggota_2: string;
+  bukti_follow_boc_anggota_2: string;
+  bukti_follow_yv_anggota_2: string;
   bukti_bayar: string;
 }): Promise<{ status: "success" | "error"; message?: string }> {
   return callApi({
