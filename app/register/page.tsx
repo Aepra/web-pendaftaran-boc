@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useRegistration } from "@/contexts/registration-context";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { RegistrationFormData } from "@/types";
 import { registerParticipant } from "@/lib/api/boc-api";
 import { formatRupiah } from "@/lib/utils";
@@ -154,6 +154,7 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [qrisModalOpen, setQrisModalOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; label: string } | null>(null);
+  const isSubmitting = useRef(false);
 
   // Redirect jika belum login
   useEffect(() => {
@@ -264,12 +265,16 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
+
     setErrorMsg("");
 
     const err = validate();
     if (err) {
       setErrorMsg(err);
       setSubmitStatus("error");
+      isSubmitting.current = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -349,16 +354,19 @@ export default function RegisterPage() {
       if (result.status === "success" && result.data) {
         setData(result.data);
         setSubmitStatus("success");
+        isSubmitting.current = false;
         router.push("/profile");
       } else {
         setErrorMsg(result.message || "Gagal menyimpan data pendaftaran.");
         setSubmitStatus("error");
+        isSubmitting.current = false;
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } catch (err) {
       setUploadProgress(null);
       setErrorMsg(err instanceof Error ? err.message : "Terjadi kesalahan jaringan.");
       setSubmitStatus("error");
+      isSubmitting.current = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
