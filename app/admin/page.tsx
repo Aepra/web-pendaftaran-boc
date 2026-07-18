@@ -809,10 +809,37 @@ export default function AdminDashboard() {
               <AdminManagementPanel isSuperAdmin={user.email === ADMIN_EMAIL} />
             ) : (
               <>
-                {/* Title */}
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-[#002D61]">Dashboard Pendaftaran</h1>
-                  <p className="text-sm text-[#002D61]/60 mt-1">Verifikasi dan kelola data peserta Battle of Champions III 2026</p>
+                {/* Title & Quick Links */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-[#002D61]">Dashboard Pendaftaran</h1>
+                    <p className="text-sm text-[#002D61]/60 mt-1">Verifikasi dan kelola data peserta Battle of Champions III 2026</p>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-3">
+                    <a 
+                      href={process.env.NEXT_PUBLIC_GOOGLE_DRIVE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-white border border-[#002D61]/10 rounded-xl text-sm font-bold text-[#002D61] hover:bg-gray-50 shadow-sm transition"
+                    >
+                      <svg className="w-4 h-4 text-[#002D61]" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7.71,3.5L1.15,15L4.58,21L11.13,9.5M9.73,15L6.3,21H19.42L22.85,15M22.28,14L15.72,2.5H8.85L15.42,14H22.28Z" />
+                      </svg>
+                      Google Drive
+                    </a>
+                    <a
+                      href={process.env.NEXT_PUBLIC_GOOGLE_SPREADSHEET_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-white border border-[#002D61]/10 rounded-xl text-sm font-bold text-emerald-700 hover:bg-emerald-50 shadow-sm transition"
+                    >
+                      <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.8,20H14L12,16.6L10,20H8.2L11.1,15.5L8.2,11H10L12,14.4L14,11H15.8L12.9,15.5L15.8,20Z" />
+                      </svg>
+                      Spreadsheet
+                    </a>
+                  </div>
                 </div>
 
                 {/* Stats */}
