@@ -818,7 +818,7 @@ export default function AdminDashboard() {
                   
                   <div className="flex flex-wrap gap-3">
                     <a 
-                      href={process.env.NEXT_PUBLIC_GOOGLE_DRIVE_URL}
+                      href={process.env.NEXT_PUBLIC_GOOGLE_DRIVE_URL || "https://drive.google.com/drive/folders/1y0hurEyvye78WdKkBXB-xAmAp4OieMFj"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 bg-white border border-[#002D61]/10 rounded-xl text-sm font-bold text-[#002D61] hover:bg-gray-50 shadow-sm transition"
@@ -829,7 +829,7 @@ export default function AdminDashboard() {
                       Google Drive
                     </a>
                     <a
-                      href={process.env.NEXT_PUBLIC_GOOGLE_SPREADSHEET_URL}
+                      href={process.env.NEXT_PUBLIC_GOOGLE_SPREADSHEET_URL || "https://docs.google.com/spreadsheets/d/13wREgOx8YafLqf8EFxmbxoxcptXNG1C5Vr8myEaU7NI/edit?gid=1766087469#gid=1766087469"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 bg-white border border-[#002D61]/10 rounded-xl text-sm font-bold text-emerald-700 hover:bg-emerald-50 shadow-sm transition"
