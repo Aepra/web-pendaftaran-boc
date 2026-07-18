@@ -155,6 +155,7 @@ export default function RegisterPage() {
   const [qrisModalOpen, setQrisModalOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; label: string } | null>(null);
   const isSubmitting = useRef(false);
+  const uploadCache = useRef<Record<string, { base64: string; url: string }>>({});
 
   // Redirect jika belum login
   useEffect(() => {
@@ -314,7 +315,19 @@ export default function RegisterPage() {
       for (let i = 0; i < filesToUpload.length; i++) {
         const f = filesToUpload[i];
         setUploadProgress({ current: i + 1, total: filesToUpload.length, label: f.label });
-        uploadedUrls[f.key] = await uploadFileToDrive(f.base64, `${prefix}_${f.label}.jpg`);
+
+        // Cek cache upload
+        const cached = uploadCache.current[f.key];
+        if (cached && cached.base64 === f.base64) {
+          uploadedUrls[f.key] = cached.url;
+          continue; // Skip upload karena gambar persis sama dan sudah terupload
+        }
+
+        const url = await uploadFileToDrive(f.base64, `${prefix}_${f.label}.jpg`);
+        uploadedUrls[f.key] = url;
+        
+        // Simpan ke cache
+        uploadCache.current[f.key] = { base64: f.base64, url };
       }
 
       // ================================================================
