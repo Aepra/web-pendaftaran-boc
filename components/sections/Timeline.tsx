@@ -39,12 +39,9 @@ export default function Timeline() {
   ];
 
   return (
-    <section id="timeline" className="relative w-full bg-white/75 backdrop-blur-[2px] py-20 md:py-28">
+    <section id="timeline" className="relative w-full bg-white/75 backdrop-blur-[2px] py-12 md:py-16">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-16">
-          <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-[#700702] mb-4 bg-[#700702]/8 px-3 py-1 rounded-full border border-[#700702]/15">
-            Investigation Progress
-          </span>
+        <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#002D61] leading-[1.15]">
             Timeline Kegiatan
           </h2>
@@ -74,7 +71,7 @@ export default function Timeline() {
                     <div className="group p-6 rounded-2xl border border-[#002D61]/10 bg-[#FFF6E9] hover:border-[#002D61]/25 hover:shadow-md transition-all duration-300">
                       {/* Mobile header */}
                       <div className="flex items-center gap-3 mb-3 md:hidden">
-                        <div className={`flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full ${isRed ? "bg-[#700702]/10 text-[#700702]" : "bg-[#002D61]/10 text-[#002D61]"}`}>
+                        <div className={`flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 shadow-sm ${isRed ? "border-[#700702] text-[#700702]" : "border-[#002D61] text-[#002D61]"}`}>
                           {phase.icon}
                         </div>
                         <span className={`text-sm font-bold ${isRed ? "text-[#700702]" : "text-[#002D61]"}`}>{phase.date}</span>
@@ -89,10 +86,10 @@ export default function Timeline() {
                   </div>
 
                   {/* Glowing checkpoint dot */}
-                  <div className={`hidden md:flex absolute left-1/2 top-6 -translate-x-1/2 items-center justify-center w-12 h-12 rounded-full border-2 backdrop-blur-sm shadow-lg z-10 ${
+                  <div className={`hidden md:flex absolute left-1/2 top-6 -translate-x-1/2 items-center justify-center w-12 h-12 rounded-full border-2 bg-white shadow-md z-10 ${
                     isRed
-                      ? "bg-[#700702]/10 border-[#700702]/30 text-[#700702] shadow-[0_0_20px_rgba(112,7,2,0.2)]"
-                      : "bg-[#002D61]/10 border-[#002D61]/30 text-[#002D61] shadow-[0_0_20px_rgba(0,45,97,0.15)]"
+                      ? "border-[#700702] text-[#700702] shadow-[0_0_15px_rgba(112,7,2,0.15)]"
+                      : "border-[#002D61] text-[#002D61] shadow-[0_0_15px_rgba(0,45,97,0.15)]"
                   }`}>
                     {phase.icon}
                   </div>

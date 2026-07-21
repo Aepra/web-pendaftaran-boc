@@ -674,9 +674,6 @@ export default function ProfilePage() {
       <main className="relative z-10 max-w-4xl mx-auto px-4 py-20 md:py-28">
         {/* Header */}
         <div className="text-center mb-10">
-          <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#700702] mb-3 bg-[#700702]/8 px-4 py-1.5 rounded-full border border-[#700702]/15">
-            Dashboard Peserta
-          </span>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#002D61] leading-tight">
             Berkas Investigator
           </h1>

@@ -1,6 +1,6 @@
 export default function GameConcept() {
   return (
-    <section id="game-concept" className="relative w-full bg-[#FFF6E9]/75 backdrop-blur-[2px] py-20 md:py-28">
+    <section id="game-concept" className="relative w-full bg-[#FFF6E9]/75 backdrop-blur-[2px] py-12 md:py-16">
       {/* Subtle diagonal lines */}
       <div
         className="absolute inset-0 opacity-[0.025] pointer-events-none"
@@ -11,10 +11,7 @@ export default function GameConcept() {
         }}
       />
       <div className="relative max-w-4xl mx-auto px-4">
-        <div className="text-center mb-14">
-          <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-[#700702] mb-4 bg-[#700702]/8 px-3 py-1 rounded-full border border-[#700702]/15">
-            Game Concept
-          </span>
+        <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#002D61] leading-[1.15]">
             5 Babak Investigasi
           </h2>
@@ -108,7 +105,7 @@ export default function GameConcept() {
             ].map((step, idx) => (
               <div key={idx} className="relative flex gap-5 md:gap-8">
                 {/* Icon dot */}
-                <div className="hidden md:flex flex-shrink-0 relative z-10 w-16 h-16 items-center justify-center rounded-full bg-[#700702]/10 border-2 border-[#700702]/20 text-[#700702]">
+                <div className="hidden md:flex flex-shrink-0 relative z-10 w-16 h-16 items-center justify-center rounded-full bg-white border-2 border-[#700702] text-[#700702] shadow-md">
                   {step.icon}
                 </div>
 
@@ -116,7 +113,7 @@ export default function GameConcept() {
                 <div className="flex-1 p-5 md:p-6 rounded-2xl border border-[#002D61]/10 bg-white shadow-sm hover:shadow-md hover:border-[#002D61]/25 transition-all duration-300">
                   {/* Mobile icon */}
                   <div className="flex items-center gap-3 mb-3 md:hidden">
-                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-[#700702]/10 text-[#700702]">
+                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-white border-2 border-[#700702] text-[#700702] shadow-sm">
                       {step.icon}
                     </div>
                     <span className="text-xs font-bold text-[#700702] tracking-wider uppercase">

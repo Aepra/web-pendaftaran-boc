@@ -1,11 +1,8 @@
 export default function Contact() {
   return (
-    <section id="contact" className="relative w-full bg-white/75 backdrop-blur-[2px] py-20 md:py-28">
+    <section id="contact" className="relative w-full bg-[#FFF6E9]/75 backdrop-blur-[2px] py-12 md:py-16">
       <div className="max-w-5xl mx-auto px-4">
-        <div className="text-center mb-16">
-          <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-[#700702] mb-4 bg-[#700702]/8 px-3 py-1 rounded-full border border-[#700702]/15">
-            Command Center
-          </span>
+        <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#002D61] leading-[1.15]">
             Kontak Kami
           </h2>
