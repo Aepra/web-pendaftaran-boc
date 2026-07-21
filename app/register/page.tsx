@@ -119,7 +119,6 @@ function ImageModal({ src, onClose }: { src: string; onClose: () => void }) {
 const EMPTY_FORM: RegistrationFormData = {
   nama_tim: "",
   institution: "",
-  memberCount: 1,
   leaderName: "",
   email: "",
   whatsapp: "",
@@ -141,7 +140,9 @@ const EMPTY_FORM: RegistrationFormData = {
   bukti_follow_boc_anggota_2: "",
   bukti_follow_yv_anggota_2: "",
   bukti_bayar: "",
-  link_twibbon: "",
+  link_twibbon_ketua: "",
+  link_twibbon_anggota_1: "",
+  link_twibbon_anggota_2: "",
 };
 
 export default function RegisterPage() {
@@ -186,7 +187,7 @@ export default function RegisterPage() {
     const { name, value } = e.target;
     sd((prev) => ({
       ...prev,
-      [name]: name === "memberCount" ? Number(value) : value,
+      [name]: value,
     }));
   };
 
@@ -223,26 +224,19 @@ export default function RegisterPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return "Format email tidak valid.";
     if (!/^(\+62|62|08)\d{7,14}$/.test(d.whatsapp.replace(/[\s\-()]/g, "")))
       return "Nomor WhatsApp tidak valid (gunakan 08... atau 628...).";
-    if (d.memberCount < 1 || d.memberCount > 3)
-      return "Jumlah anggota (termasuk ketua) harus 1–3 orang.";
+    if (!d.nama_anggota_1.trim() || !d.whatsapp_anggota_1.trim())
+      return "Nama dan WhatsApp Anggota 1 wajib diisi.";
+    if (!d.foto_anggota_1 || !d.kartu_pelajar_anggota_1 || !d.bukti_follow_boc_anggota_1 || !d.bukti_follow_yv_anggota_1)
+      return "Berkas Anggota 1 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
+    
+    if (!d.nama_anggota_2.trim() || !d.whatsapp_anggota_2.trim())
+      return "Nama dan WhatsApp Anggota 2 wajib diisi.";
+    if (!d.foto_anggota_2 || !d.kartu_pelajar_anggota_2 || !d.bukti_follow_boc_anggota_2 || !d.bukti_follow_yv_anggota_2)
+      return "Berkas Anggota 2 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
 
-    if (!d.foto_ketua) return "Pas foto ketua wajib diunggah.";
-    if (!d.kartu_pelajar_ketua) return "Kartu pelajar ketua wajib diunggah.";
-    if (!d.bukti_follow_boc_ketua || !d.bukti_follow_yv_ketua) return "Bukti follow Instagram BoC & Youthverse ketua wajib diunggah.";
-
-    if (d.memberCount >= 2) {
-      if (!d.nama_anggota_1.trim() || !d.whatsapp_anggota_1.trim())
-        return "Nama dan WhatsApp Anggota 1 wajib diisi.";
-      if (!d.foto_anggota_1 || !d.kartu_pelajar_anggota_1 || !d.bukti_follow_boc_anggota_1 || !d.bukti_follow_yv_anggota_1)
-        return "Berkas Anggota 1 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
-    }
-
-    if (d.memberCount === 3) {
-      if (!d.nama_anggota_2.trim() || !d.whatsapp_anggota_2.trim())
-        return "Nama dan WhatsApp Anggota 2 wajib diisi.";
-      if (!d.foto_anggota_2 || !d.kartu_pelajar_anggota_2 || !d.bukti_follow_boc_anggota_2 || !d.bukti_follow_yv_anggota_2)
-        return "Berkas Anggota 2 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
-    }
+    if (!d.link_twibbon_ketua.trim()) return "Link Twibbon Ketua wajib diisi.";
+    if (!d.link_twibbon_anggota_1.trim()) return "Link Twibbon Anggota 1 wajib diisi.";
+    if (!d.link_twibbon_anggota_2.trim()) return "Link Twibbon Anggota 2 wajib diisi.";
 
     if (!d.bukti_bayar) return "Bukti pembayaran QRIS wajib diunggah.";
 
@@ -298,18 +292,14 @@ export default function RegisterPage() {
         { key: "bukti_follow_boc_ketua", base64: d.bukti_follow_boc_ketua, label: "Bukti Follow BoC Ketua" },
         { key: "bukti_follow_yv_ketua",  base64: d.bukti_follow_yv_ketua,  label: "Bukti Follow YV Ketua" },
         { key: "bukti_bayar",            base64: d.bukti_bayar,            label: "Bukti Pembayaran" },
-        ...(d.memberCount >= 2 ? [
-          { key: "foto_anggota_1",             base64: d.foto_anggota_1,             label: "Foto Anggota 1" },
-          { key: "kartu_pelajar_anggota_1",    base64: d.kartu_pelajar_anggota_1,    label: "Kartu Pelajar Anggota 1" },
-          { key: "bukti_follow_boc_anggota_1", base64: d.bukti_follow_boc_anggota_1, label: "Bukti Follow BoC Anggota 1" },
-          { key: "bukti_follow_yv_anggota_1",  base64: d.bukti_follow_yv_anggota_1,  label: "Bukti Follow YV Anggota 1" },
-        ] : []),
-        ...(d.memberCount === 3 ? [
-          { key: "foto_anggota_2",             base64: d.foto_anggota_2,             label: "Foto Anggota 2" },
-          { key: "kartu_pelajar_anggota_2",    base64: d.kartu_pelajar_anggota_2,    label: "Kartu Pelajar Anggota 2" },
-          { key: "bukti_follow_boc_anggota_2", base64: d.bukti_follow_boc_anggota_2, label: "Bukti Follow BoC Anggota 2" },
-          { key: "bukti_follow_yv_anggota_2",  base64: d.bukti_follow_yv_anggota_2,  label: "Bukti Follow YV Anggota 2" },
-        ] : []),
+        { key: "foto_anggota_1",             base64: d.foto_anggota_1,             label: "Foto Anggota 1" },
+        { key: "kartu_pelajar_anggota_1",    base64: d.kartu_pelajar_anggota_1,    label: "Kartu Pelajar Anggota 1" },
+        { key: "bukti_follow_boc_anggota_1", base64: d.bukti_follow_boc_anggota_1, label: "Bukti Follow BoC Anggota 1" },
+        { key: "bukti_follow_yv_anggota_1",  base64: d.bukti_follow_yv_anggota_1,  label: "Bukti Follow YV Anggota 1" },
+        { key: "foto_anggota_2",             base64: d.foto_anggota_2,             label: "Foto Anggota 2" },
+        { key: "kartu_pelajar_anggota_2",    base64: d.kartu_pelajar_anggota_2,    label: "Kartu Pelajar Anggota 2" },
+        { key: "bukti_follow_boc_anggota_2", base64: d.bukti_follow_boc_anggota_2, label: "Bukti Follow BoC Anggota 2" },
+        { key: "bukti_follow_yv_anggota_2",  base64: d.bukti_follow_yv_anggota_2,  label: "Bukti Follow YV Anggota 2" },
       ];
 
       const uploadedUrls: Record<string, string> = {};
@@ -342,11 +332,11 @@ export default function RegisterPage() {
         email: d.email,
         whatsapp: d.whatsapp,
         instansi: d.institution,
-        jumlah_anggota: d.memberCount,
-        nama_anggota_1: d.memberCount >= 2 ? d.nama_anggota_1 : "",
-        whatsapp_anggota_1: d.memberCount >= 2 ? d.whatsapp_anggota_1 : "",
-        nama_anggota_2: d.memberCount === 3 ? d.nama_anggota_2 : "",
-        whatsapp_anggota_2: d.memberCount === 3 ? d.whatsapp_anggota_2 : "",
+        jumlah_anggota: 3,
+        nama_anggota_1: d.nama_anggota_1,
+        whatsapp_anggota_1: d.whatsapp_anggota_1,
+        nama_anggota_2: d.nama_anggota_2,
+        whatsapp_anggota_2: d.whatsapp_anggota_2,
         notes: d.notes,
         foto_ketua:                 uploadedUrls["foto_ketua"] || "",
         kartu_pelajar_ketua:        uploadedUrls["kartu_pelajar_ketua"] || "",
@@ -361,7 +351,9 @@ export default function RegisterPage() {
         bukti_follow_boc_anggota_2: uploadedUrls["bukti_follow_boc_anggota_2"] || "",
         bukti_follow_yv_anggota_2:  uploadedUrls["bukti_follow_yv_anggota_2"] || "",
         bukti_bayar:                uploadedUrls["bukti_bayar"] || "",
-        link_twibbon:               d.link_twibbon || "",
+        link_twibbon_ketua:         d.link_twibbon_ketua || "",
+        link_twibbon_anggota_1:     d.link_twibbon_anggota_1 || "",
+        link_twibbon_anggota_2:     d.link_twibbon_anggota_2 || "",
       });
 
       setUploadProgress(null);
@@ -595,22 +587,6 @@ export default function RegisterPage() {
                   placeholder="Misal: SMAN 5 Makassar"
                 />
               </div>
-              <div>
-                <label className={labelCls}>Jumlah Anggota (Total termasuk Ketua) <Req /></label>
-                <select
-                  name="memberCount"
-                  required
-                  value={d.memberCount}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={inputCls}
-                >
-                  <option value={1}>1 Orang (Hanya Ketua)</option>
-                  <option value={2}>2 Orang (Ketua + 1 Anggota)</option>
-                  <option value={3}>3 Orang (Ketua + 2 Anggota)</option>
-                </select>
-                <p className="text-xs text-[#002D61]/50 mt-1.5 font-medium">Maks. 3 orang (1 Ketua + 2 Anggota).</p>
-              </div>
             </div>
           </div>
 
@@ -658,13 +634,16 @@ export default function RegisterPage() {
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_ketua")} disabled={isLoading} className={fileCls} />
                   <UploadBadge value={d.bukti_follow_yv_ketua} />
                 </div>
+                <div>
+                  <label className={labelCls}>Link Twibbon <Req /></label>
+                  <input type="url" name="link_twibbon_ketua" value={d.link_twibbon_ketua} onChange={handleChange} disabled={isLoading} className={inputCls.replace("p-3.5", "p-2")} placeholder="Link IG" required />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* === SECTION 3: DATA ANGGOTA 1 (Conditional) === */}
-          {d.memberCount >= 2 && (
-            <div className={sectionCls}>
+          {/* === SECTION 3: DATA ANGGOTA 1 === */}
+          <div className={sectionCls}>
               <div className={sectionHeaderCls}>
                 <div className="w-9 h-9 rounded-full bg-[#002D61]/20 text-[#002D61] flex items-center justify-center font-bold text-sm">A1</div>
                 <h2 className="text-xl font-extrabold text-[#002D61]">Data Anggota 1</h2>
@@ -702,14 +681,16 @@ export default function RegisterPage() {
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.bukti_follow_yv_anggota_1} />
                   </div>
+                  <div>
+                    <label className={labelCls}>Link Twibbon <Req /></label>
+                    <input type="url" name="link_twibbon_anggota_1" value={d.link_twibbon_anggota_1} onChange={handleChange} disabled={isLoading} className={inputCls.replace("p-3.5", "p-2")} placeholder="Link IG" required />
+                  </div>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* === SECTION 4: DATA ANGGOTA 2 (Conditional) === */}
-          {d.memberCount === 3 && (
-            <div className={sectionCls}>
+          {/* === SECTION 4: DATA ANGGOTA 2 === */}
+          <div className={sectionCls}>
               <div className={sectionHeaderCls}>
                 <div className="w-9 h-9 rounded-full bg-[#002D61]/20 text-[#002D61] flex items-center justify-center font-bold text-sm">A2</div>
                 <h2 className="text-xl font-extrabold text-[#002D61]">Data Anggota 2</h2>
@@ -747,10 +728,13 @@ export default function RegisterPage() {
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.bukti_follow_yv_anggota_2} />
                   </div>
+                  <div>
+                    <label className={labelCls}>Link Twibbon <Req /></label>
+                    <input type="url" name="link_twibbon_anggota_2" value={d.link_twibbon_anggota_2} onChange={handleChange} disabled={isLoading} className={inputCls.replace("p-3.5", "p-2")} placeholder="Link IG" required />
+                  </div>
                 </div>
               </div>
             </div>
-          )}
 
           {/* === SECTION 5: CATATAN & SUBMIT === */}
           <div className={sectionCls}>
@@ -763,29 +747,19 @@ export default function RegisterPage() {
               <h2 className="text-xl font-extrabold text-[#002D61]">Catatan & Kirim</h2>
             </div>
 
-            <div className="mb-6">
-              <label className={labelCls}>Link Bukti Upload Twibbon <Req /></label>
-              <input
-                type="url"
-                name="link_twibbon"
-                value={d.link_twibbon}
-                onChange={handleChange}
-                disabled={isLoading}
-                className={inputCls}
-                placeholder="https://instagram.com/p/..."
-                required
-              />
-              <p className="text-xs text-[#002D61]/60 mt-2 italic">
-                Anda bisa mendownload template twibbon di bawah ini:{" "}
-                <a 
-                  href="[MASUKKAN_LINK_DOWNLOAD_TWIBBON_DI_SINI]" 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="text-blue-600 font-bold hover:underline"
-                >
-                  Link Download Template Twibbon
-                </a>
-              </p>
+            <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 text-sm text-blue-800">
+              <strong className="block mb-1">Penting:</strong>
+              Anda wajib mengunggah Twibbon di Instagram masing-masing peserta (Ketua, Anggota 1, dan Anggota 2).
+              <br />
+              Silakan download template Twibbon di sini:{" "}
+              <a 
+                href="[MASUKKAN_LINK_DOWNLOAD_TWIBBON_DI_SINI]" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="font-bold underline hover:text-blue-900"
+              >
+                Template Twibbon BoC
+              </a>
             </div>
 
             <div className="mb-6">

@@ -62,7 +62,9 @@ export interface RegistrationDetail {
   bukti_follow_boc_anggota_2: string;
   bukti_follow_yv_anggota_2: string;
   bukti_bayar: string;
-  link_twibbon: string;
+  link_twibbon_ketua: string;
+  link_twibbon_anggota_1: string;
+  link_twibbon_anggota_2: string;
   participant_status: ParticipantStatus;
   admin_message: string;
   created_at: string;
@@ -77,7 +79,6 @@ export interface RegistrationFormData {
   // Data Tim
   nama_tim: string;
   institution: string;
-  memberCount: number;
   // Data Ketua
   leaderName: string;
   email: string;
@@ -108,7 +109,9 @@ export interface RegistrationFormData {
   bukti_follow_yv_anggota_2: string;
   // Pembayaran
   bukti_bayar: string;
-  link_twibbon: string;
+  link_twibbon_ketua: string;
+  link_twibbon_anggota_1: string;
+  link_twibbon_anggota_2: string;
 }
 
 // ======================
@@ -141,7 +144,9 @@ export interface RegisterPayload {
   bukti_follow_boc_anggota_2: string;
   bukti_follow_yv_anggota_2: string;
   bukti_bayar: string;
-  link_twibbon: string;
+  link_twibbon_ketua: string;
+  link_twibbon_anggota_1: string;
+  link_twibbon_anggota_2: string;
 }
 
 // ======================

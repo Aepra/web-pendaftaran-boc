@@ -149,7 +149,6 @@ function EditPanel({
   const [d, sd] = useState<RegistrationFormData>({
     nama_tim: detail.nama_tim,
     institution: detail.instansi,
-    memberCount: detail.jumlah_anggota,
     leaderName: detail.nama_ketua,
     email: detail.email,
     whatsapp: detail.whatsapp,
@@ -171,14 +170,16 @@ function EditPanel({
     bukti_follow_boc_anggota_2: detail.bukti_follow_boc_anggota_2,
     bukti_follow_yv_anggota_2: detail.bukti_follow_yv_anggota_2,
     bukti_bayar: detail.bukti_bayar,
-    link_twibbon: detail.link_twibbon,
+    link_twibbon_ketua: detail.link_twibbon_ketua || "",
+    link_twibbon_anggota_1: detail.link_twibbon_anggota_1 || "",
+    link_twibbon_anggota_2: detail.link_twibbon_anggota_2 || "",
   });
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    sd((prev) => ({ ...prev, [name]: name === "memberCount" ? Number(value) : value }));
+    sd((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>, field: keyof RegistrationFormData) => {
@@ -203,26 +204,28 @@ function EditPanel({
       nama_ketua: d.leaderName,
       whatsapp: d.whatsapp,
       instansi: d.institution,
-      jumlah_anggota: d.memberCount,
-      nama_anggota_1: d.memberCount >= 2 ? d.nama_anggota_1 : "",
-      whatsapp_anggota_1: d.memberCount >= 2 ? d.whatsapp_anggota_1 : "",
-      nama_anggota_2: d.memberCount === 3 ? d.nama_anggota_2 : "",
-      whatsapp_anggota_2: d.memberCount === 3 ? d.whatsapp_anggota_2 : "",
+      jumlah_anggota: 3,
+      nama_anggota_1: d.nama_anggota_1,
+      whatsapp_anggota_1: d.whatsapp_anggota_1,
+      nama_anggota_2: d.nama_anggota_2,
+      whatsapp_anggota_2: d.whatsapp_anggota_2,
       notes: d.notes,
       foto_ketua: d.foto_ketua,
       kartu_pelajar_ketua: d.kartu_pelajar_ketua,
       bukti_follow_boc_ketua: d.bukti_follow_boc_ketua,
       bukti_follow_yv_ketua: d.bukti_follow_yv_ketua,
-      foto_anggota_1: d.memberCount >= 2 ? d.foto_anggota_1 : "",
-      kartu_pelajar_anggota_1: d.memberCount >= 2 ? d.kartu_pelajar_anggota_1 : "",
-      bukti_follow_boc_anggota_1: d.memberCount >= 2 ? d.bukti_follow_boc_anggota_1 : "",
-      bukti_follow_yv_anggota_1: d.memberCount >= 2 ? d.bukti_follow_yv_anggota_1 : "",
-      foto_anggota_2: d.memberCount === 3 ? d.foto_anggota_2 : "",
-      kartu_pelajar_anggota_2: d.memberCount === 3 ? d.kartu_pelajar_anggota_2 : "",
-      bukti_follow_boc_anggota_2: d.memberCount === 3 ? d.bukti_follow_boc_anggota_2 : "",
-      bukti_follow_yv_anggota_2: d.memberCount === 3 ? d.bukti_follow_yv_anggota_2 : "",
+      foto_anggota_1: d.foto_anggota_1,
+      kartu_pelajar_anggota_1: d.kartu_pelajar_anggota_1,
+      bukti_follow_boc_anggota_1: d.bukti_follow_boc_anggota_1,
+      bukti_follow_yv_anggota_1: d.bukti_follow_yv_anggota_1,
+      foto_anggota_2: d.foto_anggota_2,
+      kartu_pelajar_anggota_2: d.kartu_pelajar_anggota_2,
+      bukti_follow_boc_anggota_2: d.bukti_follow_boc_anggota_2,
+      bukti_follow_yv_anggota_2: d.bukti_follow_yv_anggota_2,
       bukti_bayar: d.bukti_bayar,
-      link_twibbon: d.link_twibbon,
+      link_twibbon_ketua: d.link_twibbon_ketua,
+      link_twibbon_anggota_1: d.link_twibbon_anggota_1,
+      link_twibbon_anggota_2: d.link_twibbon_anggota_2,
     });
     if (result.status === "success") { onSuccess(); }
     else { setErrorMsg(result.message || "Gagal memperbarui data."); setStatus("error"); }
@@ -248,26 +251,17 @@ function EditPanel({
           <div><label className={lc}>Asal Sekolah</label><input name="institution" value={d.institution} onChange={handleChange} disabled={isLoading} className={ic} /></div>
           <div><label className={lc}>Nama Ketua</label><input name="leaderName" value={d.leaderName} onChange={handleChange} disabled={isLoading} className={ic} /></div>
           <div><label className={lc}>WhatsApp Ketua</label><input name="whatsapp" value={d.whatsapp} onChange={handleChange} disabled={isLoading} className={ic} /></div>
-          <div>
-            <label className={lc}>Jumlah Anggota</label>
-            <select name="memberCount" value={d.memberCount} onChange={handleChange} disabled={isLoading} className={ic}>
-              <option value={1}>1 Orang</option><option value={2}>2 Orang</option><option value={3}>3 Orang</option>
-            </select>
-          </div>
+          <div><label className={lc}>WhatsApp Ketua</label><input name="whatsapp" value={d.whatsapp} onChange={handleChange} disabled={isLoading} className={ic} /></div>
         </div>
 
-        {d.memberCount >= 2 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className={lc}>Nama Anggota 1</label><input name="nama_anggota_1" value={d.nama_anggota_1} onChange={handleChange} disabled={isLoading} className={ic} /></div>
-            <div><label className={lc}>WhatsApp Anggota 1</label><input name="whatsapp_anggota_1" value={d.whatsapp_anggota_1} onChange={handleChange} disabled={isLoading} className={ic} /></div>
-          </div>
-        )}
-        {d.memberCount === 3 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className={lc}>Nama Anggota 2</label><input name="nama_anggota_2" value={d.nama_anggota_2} onChange={handleChange} disabled={isLoading} className={ic} /></div>
-            <div><label className={lc}>WhatsApp Anggota 2</label><input name="whatsapp_anggota_2" value={d.whatsapp_anggota_2} onChange={handleChange} disabled={isLoading} className={ic} /></div>
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label className={lc}>Nama Anggota 1</label><input name="nama_anggota_1" value={d.nama_anggota_1} onChange={handleChange} disabled={isLoading} className={ic} /></div>
+          <div><label className={lc}>WhatsApp Anggota 1</label><input name="whatsapp_anggota_1" value={d.whatsapp_anggota_1} onChange={handleChange} disabled={isLoading} className={ic} /></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label className={lc}>Nama Anggota 2</label><input name="nama_anggota_2" value={d.nama_anggota_2} onChange={handleChange} disabled={isLoading} className={ic} /></div>
+          <div><label className={lc}>WhatsApp Anggota 2</label><input name="whatsapp_anggota_2" value={d.whatsapp_anggota_2} onChange={handleChange} disabled={isLoading} className={ic} /></div>
+        </div>
 
         {/* Berkas Ketua */}
         <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
@@ -294,65 +288,73 @@ function EditPanel({
               {d.bukti_follow_yv_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
           </div>
+          <div className="mt-4">
+            <label className={lc}>Link Twibbon Ketua</label>
+            <input type="url" name="link_twibbon_ketua" value={d.link_twibbon_ketua} onChange={handleChange} disabled={isLoading} className={ic} placeholder="Link post IG" required />
+          </div>
         </div>
 
         {/* Berkas Anggota 1 */}
-        {d.memberCount >= 2 && (
-          <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
-            <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Anggota 1</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label className={lc}>Pas Foto</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_anggota_1")} disabled={isLoading} className={fc} />
-                {d.foto_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
-              </div>
-              <div>
-                <label className={lc}>Kartu Pelajar</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_anggota_1")} disabled={isLoading} className={fc} />
-                {d.kartu_pelajar_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
-              </div>
-              <div>
-                <label className={lc}>Follow BoC</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_anggota_1")} disabled={isLoading} className={fc} />
-                {d.bukti_follow_boc_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
-              </div>
-              <div>
-                <label className={lc}>Follow Youthverse</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fc} />
-                {d.bukti_follow_yv_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
-              </div>
+        <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
+          <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Anggota 1</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className={lc}>Pas Foto</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_anggota_1")} disabled={isLoading} className={fc} />
+              {d.foto_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Kartu Pelajar</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_anggota_1")} disabled={isLoading} className={fc} />
+              {d.kartu_pelajar_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Follow BoC</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_anggota_1")} disabled={isLoading} className={fc} />
+              {d.bukti_follow_boc_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Follow Youthverse</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fc} />
+              {d.bukti_follow_yv_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
           </div>
-        )}
+          <div className="mt-4">
+            <label className={lc}>Link Twibbon Anggota 1</label>
+            <input type="url" name="link_twibbon_anggota_1" value={d.link_twibbon_anggota_1} onChange={handleChange} disabled={isLoading} className={ic} placeholder="Link post IG" required />
+          </div>
+        </div>
 
         {/* Berkas Anggota 2 */}
-        {d.memberCount === 3 && (
-          <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
-            <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Anggota 2</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label className={lc}>Pas Foto</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_anggota_2")} disabled={isLoading} className={fc} />
-                {d.foto_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
-              </div>
-              <div>
-                <label className={lc}>Kartu Pelajar</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_anggota_2")} disabled={isLoading} className={fc} />
-                {d.kartu_pelajar_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
-              </div>
-              <div>
-                <label className={lc}>Follow BoC</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_anggota_2")} disabled={isLoading} className={fc} />
-                {d.bukti_follow_boc_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
-              </div>
-              <div>
-                <label className={lc}>Follow Youthverse</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fc} />
-                {d.bukti_follow_yv_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
-              </div>
+        <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
+          <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Anggota 2</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className={lc}>Pas Foto</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_anggota_2")} disabled={isLoading} className={fc} />
+              {d.foto_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Kartu Pelajar</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_anggota_2")} disabled={isLoading} className={fc} />
+              {d.kartu_pelajar_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Follow BoC</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_anggota_2")} disabled={isLoading} className={fc} />
+              {d.bukti_follow_boc_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+            </div>
+            <div>
+              <label className={lc}>Follow Youthverse</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fc} />
+              {d.bukti_follow_yv_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
           </div>
-        )}
+          <div className="mt-4">
+            <label className={lc}>Link Twibbon Anggota 2</label>
+            <input type="url" name="link_twibbon_anggota_2" value={d.link_twibbon_anggota_2} onChange={handleChange} disabled={isLoading} className={ic} placeholder="Link post IG" required />
+          </div>
+        </div>
 
         <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
           <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Bukti Pembayaran QRIS</p>
@@ -360,10 +362,6 @@ function EditPanel({
           {d.bukti_bayar && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
         </div>
 
-        <div className="mt-4">
-          <label className={lc}>Link Bukti Upload Twibbon</label>
-          <input type="url" name="link_twibbon" value={d.link_twibbon} onChange={handleChange} disabled={isLoading} className={ic} placeholder="https://instagram.com/p/..." required />
-        </div>
 
         <div>
           <label className={lc}>Catatan (Opsional)</label>
@@ -488,14 +486,10 @@ function RegistrationCard({
                   { label: "Nama Ketua", value: detail.nama_ketua },
                   { label: "Email", value: detail.email },
                   { label: "WhatsApp Ketua", value: detail.whatsapp },
-                  ...(detail.jumlah_anggota >= 2 ? [
-                    { label: "Anggota 1", value: detail.nama_anggota_1 },
-                    { label: "WA Anggota 1", value: detail.whatsapp_anggota_1 },
-                  ] : []),
-                  ...(detail.jumlah_anggota === 3 ? [
-                    { label: "Anggota 2", value: detail.nama_anggota_2 },
-                    { label: "WA Anggota 2", value: detail.whatsapp_anggota_2 },
-                  ] : []),
+                  { label: "Anggota 1", value: detail.nama_anggota_1 },
+                  { label: "WA Anggota 1", value: detail.whatsapp_anggota_1 },
+                  { label: "Anggota 2", value: detail.nama_anggota_2 },
+                  { label: "WA Anggota 2", value: detail.whatsapp_anggota_2 },
                 ].map((item) => (
                   <div key={item.label}>
                     <p className="text-[10px] text-[#002D61]/50 uppercase font-bold tracking-wider">{item.label}</p>
@@ -520,41 +514,51 @@ function RegistrationCard({
                   <ImageThumb src={detail.bukti_follow_boc_ketua} label="Follow BoC Ketua" />
                   <ImageThumb src={detail.bukti_follow_yv_ketua} label="Follow YV Ketua" />
                 </div>
+                {detail.link_twibbon_ketua && (
+                  <div className="mt-2 text-xs">
+                    <span className="font-bold text-[#002D61]/60 mr-1">Twibbon:</span>
+                    <a href={detail.link_twibbon_ketua} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all">{detail.link_twibbon_ketua}</a>
+                  </div>
+                )}
               </div>
-              {detail.jumlah_anggota >= 2 && (
-                <div>
-                  <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Berkas Anggota 1</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <ImageThumb src={detail.foto_anggota_1} label="Pas Foto A1" />
-                    <ImageThumb src={detail.kartu_pelajar_anggota_1} label="Kartu Pelajar A1" />
-                    <ImageThumb src={detail.bukti_follow_boc_anggota_1} label="Follow BoC A1" />
-                    <ImageThumb src={detail.bukti_follow_yv_anggota_1} label="Follow YV A1" />
-                  </div>
+              
+              <div className="mt-6">
+                <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Berkas Anggota 1</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <ImageThumb src={detail.foto_anggota_1} label="Pas Foto A1" />
+                  <ImageThumb src={detail.kartu_pelajar_anggota_1} label="Kartu Pelajar A1" />
+                  <ImageThumb src={detail.bukti_follow_boc_anggota_1} label="Follow BoC A1" />
+                  <ImageThumb src={detail.bukti_follow_yv_anggota_1} label="Follow YV A1" />
                 </div>
-              )}
-              {detail.jumlah_anggota === 3 && (
-                <div>
-                  <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Berkas Anggota 2</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <ImageThumb src={detail.foto_anggota_2} label="Pas Foto A2" />
-                    <ImageThumb src={detail.kartu_pelajar_anggota_2} label="Kartu Pelajar A2" />
-                    <ImageThumb src={detail.bukti_follow_boc_anggota_2} label="Follow BoC A2" />
-                    <ImageThumb src={detail.bukti_follow_yv_anggota_2} label="Follow YV A2" />
+                {detail.link_twibbon_anggota_1 && (
+                  <div className="mt-2 text-xs">
+                    <span className="font-bold text-[#002D61]/60 mr-1">Twibbon:</span>
+                    <a href={detail.link_twibbon_anggota_1} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all">{detail.link_twibbon_anggota_1}</a>
                   </div>
+                )}
+              </div>
+
+              <div className="mt-6">
+                <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Berkas Anggota 2</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <ImageThumb src={detail.foto_anggota_2} label="Pas Foto A2" />
+                  <ImageThumb src={detail.kartu_pelajar_anggota_2} label="Kartu Pelajar A2" />
+                  <ImageThumb src={detail.bukti_follow_boc_anggota_2} label="Follow BoC A2" />
+                  <ImageThumb src={detail.bukti_follow_yv_anggota_2} label="Follow YV A2" />
                 </div>
-              )}
+                {detail.link_twibbon_anggota_2 && (
+                  <div className="mt-2 text-xs">
+                    <span className="font-bold text-[#002D61]/60 mr-1">Twibbon:</span>
+                    <a href={detail.link_twibbon_anggota_2} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all">{detail.link_twibbon_anggota_2}</a>
+                  </div>
+                )}
+              </div>
 
               {/* Bukti Bayar */}
               <div>
-                <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Bukti Pembayaran & Twibbon</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+                <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Bukti Pembayaran</p>
+                <div className="max-w-[200px]">
                   <ImageThumb src={detail.bukti_bayar} label="Bukti Pembayaran QRIS" />
-                  <div className="p-3 border border-[#002D61]/15 rounded-xl bg-gray-50 flex flex-col justify-center text-center items-center h-full">
-                    <p className="text-[10px] font-bold text-[#002D61]/50 mb-2 uppercase">Link Twibbon</p>
-                    <a href={detail.link_twibbon} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-600 hover:underline px-3 py-1.5 bg-blue-50 rounded-lg break-all">
-                      Buka Postingan IG
-                    </a>
-                  </div>
                 </div>
               </div>
 
