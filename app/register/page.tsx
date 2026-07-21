@@ -141,6 +141,7 @@ const EMPTY_FORM: RegistrationFormData = {
   bukti_follow_boc_anggota_2: "",
   bukti_follow_yv_anggota_2: "",
   bukti_bayar: "",
+  link_twibbon: "",
 };
 
 export default function RegisterPage() {
@@ -360,6 +361,7 @@ export default function RegisterPage() {
         bukti_follow_boc_anggota_2: uploadedUrls["bukti_follow_boc_anggota_2"] || "",
         bukti_follow_yv_anggota_2:  uploadedUrls["bukti_follow_yv_anggota_2"] || "",
         bukti_bayar:                uploadedUrls["bukti_bayar"] || "",
+        link_twibbon:               d.link_twibbon || "",
       });
 
       setUploadProgress(null);
@@ -759,6 +761,31 @@ export default function RegisterPage() {
                 </svg>
               </div>
               <h2 className="text-xl font-extrabold text-[#002D61]">Catatan & Kirim</h2>
+            </div>
+
+            <div className="mb-6">
+              <label className={labelCls}>Link Bukti Upload Twibbon <Req /></label>
+              <input
+                type="url"
+                name="link_twibbon"
+                value={d.link_twibbon}
+                onChange={handleChange}
+                disabled={isLoading}
+                className={inputCls}
+                placeholder="https://instagram.com/p/..."
+                required
+              />
+              <p className="text-xs text-[#002D61]/60 mt-2 italic">
+                Anda bisa mendownload template twibbon di bawah ini:{" "}
+                <a 
+                  href="[MASUKKAN_LINK_DOWNLOAD_TWIBBON_DI_SINI]" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="text-blue-600 font-bold hover:underline"
+                >
+                  Link Download Template Twibbon
+                </a>
+              </p>
             </div>
 
             <div className="mb-6">

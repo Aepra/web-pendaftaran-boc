@@ -101,6 +101,7 @@ export async function registerParticipant(payload: {
   bukti_follow_boc_anggota_2: string;
   bukti_follow_yv_anggota_2: string;
   bukti_bayar: string;
+  link_twibbon: string;
 }): Promise<{ status: "success" | "error"; message?: string; data?: RegistrationData }> {
   return callApi({
     action: "register",
@@ -163,6 +164,7 @@ export async function updateRegistration(payload: {
   bukti_follow_boc_anggota_2: string;
   bukti_follow_yv_anggota_2: string;
   bukti_bayar: string;
+  link_twibbon: string;
 }): Promise<{ status: "success" | "error"; message?: string }> {
   return callApi({
     action: "update_registration",

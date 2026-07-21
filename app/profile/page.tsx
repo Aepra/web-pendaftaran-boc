@@ -171,6 +171,7 @@ function EditPanel({
     bukti_follow_boc_anggota_2: detail.bukti_follow_boc_anggota_2,
     bukti_follow_yv_anggota_2: detail.bukti_follow_yv_anggota_2,
     bukti_bayar: detail.bukti_bayar,
+    link_twibbon: detail.link_twibbon,
   });
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -221,6 +222,7 @@ function EditPanel({
       bukti_follow_boc_anggota_2: d.memberCount === 3 ? d.bukti_follow_boc_anggota_2 : "",
       bukti_follow_yv_anggota_2: d.memberCount === 3 ? d.bukti_follow_yv_anggota_2 : "",
       bukti_bayar: d.bukti_bayar,
+      link_twibbon: d.link_twibbon,
     });
     if (result.status === "success") { onSuccess(); }
     else { setErrorMsg(result.message || "Gagal memperbarui data."); setStatus("error"); }
@@ -356,6 +358,11 @@ function EditPanel({
           <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Bukti Pembayaran QRIS</p>
           <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_bayar")} disabled={isLoading} className={fc} />
           {d.bukti_bayar && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
+        </div>
+
+        <div className="mt-4">
+          <label className={lc}>Link Bukti Upload Twibbon</label>
+          <input type="url" name="link_twibbon" value={d.link_twibbon} onChange={handleChange} disabled={isLoading} className={ic} placeholder="https://instagram.com/p/..." required />
         </div>
 
         <div>
@@ -539,9 +546,15 @@ function RegistrationCard({
 
               {/* Bukti Bayar */}
               <div>
-                <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Bukti Pembayaran</p>
-                <div className="max-w-[120px]">
+                <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Bukti Pembayaran & Twibbon</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
                   <ImageThumb src={detail.bukti_bayar} label="Bukti Pembayaran QRIS" />
+                  <div className="p-3 border border-[#002D61]/15 rounded-xl bg-gray-50 flex flex-col justify-center text-center items-center h-full">
+                    <p className="text-[10px] font-bold text-[#002D61]/50 mb-2 uppercase">Link Twibbon</p>
+                    <a href={detail.link_twibbon} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-600 hover:underline px-3 py-1.5 bg-blue-50 rounded-lg break-all">
+                      Buka Postingan IG
+                    </a>
+                  </div>
                 </div>
               </div>
 
