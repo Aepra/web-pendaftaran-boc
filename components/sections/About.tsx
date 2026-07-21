@@ -4,10 +4,6 @@ export default function About() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
           {/* Section label */}
-          <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-[#700702] mb-4 bg-[#700702]/8 px-3 py-1 rounded-full border border-[#700702]/15">
-            Case File
-          </span>
-
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#002D61] mb-8 leading-[1.15]">
             Tentang Kompetisi
           </h2>
@@ -112,6 +108,7 @@ export default function About() {
                 "Problem Solving",
                 "Critical Thinking",
                 "Teamwork",
+                "Bahasa Inggris",
               ].map((skill) => (
                 <div
                   key={skill}

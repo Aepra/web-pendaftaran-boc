@@ -8,11 +8,17 @@ import { getAdmins } from "@/lib/api/boc-api";
 
 const NAV_LINKS_GUEST = [
   { href: "/", label: "Home" },
+  { href: "/#game-concept", label: "Babak" },
+  { href: "/#timeline", label: "Timeline" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/login", label: "Login" },
 ];
 
 const NAV_LINKS_AUTH = [
   { href: "/", label: "Home" },
+  { href: "/#game-concept", label: "Babak" },
+  { href: "/#timeline", label: "Timeline" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/register", label: "Pendaftaran" },
   { href: "/profile", label: "Profil" },
 ];

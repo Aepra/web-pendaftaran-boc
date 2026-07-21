@@ -105,20 +105,18 @@ export default function Hero() {
               </svg>
             </Link>
           )}
-          <a
-            href="#about"
-            className="px-8 py-3.5 rounded-xl border-2 border-white/30 hover:border-white/60 text-white/80 hover:text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm"
-          >
-            Buka Case File
-          </a>
         </div>
+        
+        <p className="text-xs sm:text-sm text-white/50 mt-4 max-w-md text-center">
+          *Catatan: Pendaftaran hanya bisa dilakukan oleh perwakilan tim (Ketua Tim).
+        </p>
 
         {/* Stats Row */}
         <div className="mt-16 md:mt-20 grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-8 w-full max-w-3xl">
           {[
             { value: "25 Tim", label: "Detectives" },
             { value: "5 TKP", label: "Tahapan Lomba" },
-            { value: "Rp Jutaan", label: "Total Hadiah" },
+            { value: "Jutaan Rupiah", label: "Total Hadiah" },
           ].map((stat) => (
             <div
               key={stat.label}
