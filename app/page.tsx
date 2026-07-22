@@ -15,7 +15,7 @@ export default function Home() {
         <About />
         <GameConcept />
         <Timeline />
-        <GalleryPreview />
+        {/* <GalleryPreview /> */}
         <FAQ />
         <Contact />
       </main>
