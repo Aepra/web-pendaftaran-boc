@@ -551,6 +551,25 @@ export default function RegisterPage() {
                 </div>
               </div>
             </div>
+
+            {/* Twibbon Announcement Banner */}
+            <div className="mt-6 p-4 rounded-2xl bg-[#700702]/5 border border-[#700702]/15 text-sm text-[#700702]/90 flex gap-3 items-start">
+              <div className="w-5 h-5 rounded-full bg-[#700702] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">!</div>
+              <div>
+                <strong className="block text-[#700702] font-extrabold mb-0.5">Penting:</strong>
+                Anda wajib mengunggah Twibbon di Instagram masing-masing peserta (Ketua, Anggota 1, dan Anggota 2).
+                <br />
+                Silakan download template Twibbon di sini:{" "}
+                <a 
+                  href="[MASUKKAN_LINK_DOWNLOAD_TWIBBON_DI_SINI]" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="font-extrabold text-[#002D61] underline hover:text-[#700702] transition-colors"
+                >
+                  Template Twibbon BoC
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* === SECTION 1: TIM & INSTANSI === */}
@@ -744,20 +763,7 @@ export default function RegisterPage() {
               <h2 className="text-xl font-extrabold text-[#002D61]">Catatan & Kirim</h2>
             </div>
 
-            <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 text-sm text-blue-800">
-              <strong className="block mb-1">Penting:</strong>
-              Anda wajib mengunggah Twibbon di Instagram masing-masing peserta (Ketua, Anggota 1, dan Anggota 2).
-              <br />
-              Silakan download template Twibbon di sini:{" "}
-              <a 
-                href="[MASUKKAN_LINK_DOWNLOAD_TWIBBON_DI_SINI]" 
-                target="_blank" 
-                rel="noreferrer" 
-                className="font-bold underline hover:text-blue-900"
-              >
-                Template Twibbon BoC
-              </a>
-            </div>
+
 
             <div className="mb-6">
               <label className={labelCls}>Catatan Tambahan (Opsional)</label>
