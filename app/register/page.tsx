@@ -7,9 +7,10 @@ import { useEffect, useState, useRef } from "react";
 import type { RegistrationFormData } from "@/types";
 import { registerParticipant } from "@/lib/api/boc-api";
 import { formatRupiah } from "@/lib/utils";
-import Image from "next/image";
 
 const BIAYA_PENDAFTARAN = 100000;
+const DANA_NUMBER = "089654850260";
+const DANA_ACCOUNT_NAME = "Fitriani Nurhasanah";
 
 // ======================
 // Helper: Image Compression
@@ -56,64 +57,6 @@ function UploadBadge({ value }: { value: string }) {
 }
 
 // ======================
-// Sub-komponen: Modal Preview Gambar
-// ======================
-function ImageModal({ src, onClose }: { src: string; onClose: () => void }) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
-
-  const handleDownload = () => {
-    const a = document.createElement("a");
-    a.href = src;
-    a.download = "QRIS_BoC2026.jpeg";
-    a.click();
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="relative max-w-lg w-full bg-white rounded-2xl overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-          <p className="font-bold text-[#002D61]">QRIS Pembayaran BoC 2026</p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleDownload}
-              className="px-3 py-1.5 text-xs font-bold bg-[#002D61] text-white rounded-lg hover:bg-[#002D61]/90 transition flex items-center gap-1.5"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Download
-            </button>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
-              aria-label="Tutup"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="p-4 flex items-center justify-center bg-gray-50">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} alt="QRIS BoC 2026" className="max-w-full max-h-[70vh] object-contain rounded-lg" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ======================
 // Main Page
 // ======================
 const EMPTY_FORM: RegistrationFormData = {
@@ -154,7 +97,7 @@ export default function RegisterPage() {
   const [d, sd] = useState<RegistrationFormData>(EMPTY_FORM);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const [qrisModalOpen, setQrisModalOpen] = useState(false);
+  const [copiedDana, setCopiedDana] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; label: string } | null>(null);
   const isSubmitting = useRef(false);
   const uploadCache = useRef<Record<string, { base64: string; url: string }>>({});
@@ -214,6 +157,16 @@ export default function RegisterPage() {
     }
   };
 
+  const handleCopyDanaNumber = async () => {
+    try {
+      await navigator.clipboard.writeText(DANA_NUMBER);
+      setCopiedDana(true);
+      window.setTimeout(() => setCopiedDana(false), 2000);
+    } catch {
+      setCopiedDana(false);
+    }
+  };
+
   // ======================
   // Validasi
   // ======================
@@ -238,7 +191,7 @@ export default function RegisterPage() {
     if (!d.link_twibbon_anggota_1.trim()) return "Link Twibbon Anggota 1 wajib diisi.";
     if (!d.link_twibbon_anggota_2.trim()) return "Link Twibbon Anggota 2 wajib diisi.";
 
-    if (!d.bukti_bayar) return "Bukti pembayaran QRIS wajib diunggah.";
+    if (!d.bukti_bayar) return "Bukti pembayaran DANA wajib diunggah.";
 
     return null;
   };
@@ -393,18 +346,13 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-[#FFF6E9] font-sans text-[#002D61] antialiased">
-      {/* Modal QRIS */}
-      {qrisModalOpen && (
-        <ImageModal src="/Qriss_Pembayaran.jpeg" onClose={() => setQrisModalOpen(false)} />
-      )}
-
       {/* Ambient BG */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#700702]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#002D61]/5 rounded-full blur-3xl" />
       </div>
 
-      <main className="relative z-10 max-w-4xl mx-auto px-4 py-12 md:py-20">
+      <main className="relative z-10 max-w-4xl mx-auto px-4 pt-28 pb-12 md:py-20">
         {/* Page Header */}
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#002D61] mb-4">
@@ -446,7 +394,7 @@ export default function RegisterPage() {
                 { label: "Jenis Lomba", value: "Olimpiade" },
                 { label: "Biaya Pendaftaran", value: formatRupiah(BIAYA_PENDAFTARAN) + " / Tim" },
                 { label: "Maks. Anggota", value: "3 Orang" },
-                { label: "Pembayaran", value: "QRIS" },
+                { label: "Pembayaran", value: "DANA" },
               ].map((item) => (
                 <div key={item.label} className="p-4 rounded-2xl bg-[#FFF6E9] border border-[#002D61]/10">
                   <p className="text-[10px] font-bold text-[#002D61]/50 uppercase tracking-wider mb-1">{item.label}</p>
@@ -456,99 +404,80 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* === SECTION B: PEMBAYARAN QRIS === */}
+          {/* === SECTION B: PEMBAYARAN DANA === */}
           <div className={sectionCls}>
             <div className={sectionHeaderCls}>
               <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 4h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 2v8m0 0v2m0-2c-1.657 0-3-.895-3-2m3 2c1.657 0 3-.895 3-2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-extrabold text-[#002D61]">Pembayaran QRIS</h2>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Pembayaran DANA</h2>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 items-start">
-              {/* QRIS Image */}
-              <div className="flex flex-col items-center">
-                <div className="relative w-full max-w-xs border-2 border-[#002D61]/15 rounded-2xl overflow-hidden shadow-md bg-white p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/Qriss_Pembayaran.jpeg"
-                    alt="QRIS BoC 2026"
-                    className="w-full rounded-xl object-contain"
-                  />
+            {/* Petunjuk & Upload */}
+            <div className="space-y-5">
+              <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200">
+                <h3 className="text-sm sm:text-base font-bold text-emerald-800 mb-2 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Petunjuk Pembayaran
+                </h3>
+                <div className="mb-4 p-4 sm:p-5 rounded-xl bg-white border border-emerald-200">
+                  <p className="text-[11px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider">Transfer ke DANA</p>
+                  <div className="mt-2 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+                    <p className="text-base sm:text-xl font-black tracking-[0.06em] whitespace-nowrap text-[#002D61]">{DANA_NUMBER}</p>
+                    <button
+                      type="button"
+                      onClick={handleCopyDanaNumber}
+                      className="px-3 py-1.5 rounded-lg bg-[#002D61] text-white text-xs font-bold hover:bg-[#002D61]/90 transition"
+                    >
+                      {copiedDana ? "Tersalin" : "Salin Nomor"}
+                    </button>
+                  </div>
+                  <div className="mt-2 text-[#002D61]/70">
+                    <span className="block text-[11px] uppercase tracking-wider">Nama pemilik</span>
+                    <strong className="block mt-0.5 text-sm leading-snug break-words text-[#002D61]">{DANA_ACCOUNT_NAME}</strong>
+                  </div>
                 </div>
-                <div className="flex gap-3 mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setQrisModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#002D61]/8 text-[#002D61] hover:bg-[#002D61]/15 border border-[#002D61]/15 transition"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                    </svg>
-                    Perbesar QR
-                  </button>
-                  <a
-                    href="/Qriss_Pembayaran.jpeg"
-                    download="QRIS_BoC2026.jpeg"
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#002D61] text-white hover:bg-[#002D61]/90 transition"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download
-                  </a>
-                </div>
+                <ol className="space-y-2 text-sm leading-relaxed text-emerald-700">
+                  <li className="flex gap-2">
+                    <span className="w-4 font-bold flex-shrink-0">1.</span>
+                    <span className="min-w-0">Transfer tepat <strong>{formatRupiah(BIAYA_PENDAFTARAN)}</strong> ke nomor DANA di atas.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-4 font-bold flex-shrink-0">2.</span>
+                    <span className="min-w-0">Pastikan nama penerima adalah <strong>{DANA_ACCOUNT_NAME}</strong>.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-4 font-bold flex-shrink-0">3.</span>
+                    <span className="min-w-0">Screenshot bukti pembayaran dari aplikasi DANA.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="w-4 font-bold flex-shrink-0">4.</span>
+                    <span className="min-w-0">Upload bukti pembayaran di kolom berikut sebelum submit formulir.</span>
+                  </li>
+                </ol>
               </div>
 
-              {/* Petunjuk & Upload */}
-              <div className="space-y-5">
-                <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200">
-                  <h3 className="font-bold text-emerald-800 mb-2 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Petunjuk Pembayaran
-                  </h3>
-                  <ol className="space-y-2 text-sm text-emerald-700">
-                    <li className="flex gap-2">
-                      <span className="font-bold flex-shrink-0">1.</span>
-                      Scan QRIS di atas menggunakan aplikasi bank atau e-wallet.
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="font-bold flex-shrink-0">2.</span>
-                      Bayar tepat <strong>{formatRupiah(BIAYA_PENDAFTARAN)}</strong> per tim.
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="font-bold flex-shrink-0">3.</span>
-                      Screenshot bukti pembayaran dari aplikasi Anda.
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="font-bold flex-shrink-0">4.</span>
-                      Upload bukti pembayaran di kolom berikut sebelum submit formulir.
-                    </li>
-                  </ol>
-                </div>
-
-                <div>
-                  <label className={labelCls}>
-                    Upload Bukti Pembayaran <Req />
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, "bukti_bayar")}
-                    disabled={isLoading}
-                    className={fileCls}
-                  />
-                  <UploadBadge value={d.bukti_bayar} />
-                  {!d.bukti_bayar && (
-                    <p className="text-xs text-[#700702]/70 mt-1">
-                      Formulir tidak dapat dikirim tanpa bukti pembayaran.
-                    </p>
-                  )}
-                </div>
+              <div>
+                <label className={labelCls}>
+                  Upload Bukti Pembayaran DANA <Req />
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "bukti_bayar")}
+                  disabled={isLoading}
+                  className={fileCls}
+                />
+                <UploadBadge value={d.bukti_bayar} />
+                {!d.bukti_bayar && (
+                  <p className="text-xs text-[#700702]/70 mt-1">
+                    Formulir tidak dapat dikirim tanpa bukti pembayaran.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -786,7 +715,7 @@ export default function RegisterPage() {
                   { label: "Data tim & instansi sudah diisi", ok: !!(d.nama_tim && d.institution) },
                   { label: "Data ketua sudah lengkap", ok: !!(d.leaderName && d.whatsapp && d.email) },
                   { label: "Berkas ketua sudah diunggah", ok: !!(d.foto_ketua && d.kartu_pelajar_ketua && d.bukti_follow_boc_ketua && d.bukti_follow_yv_ketua) },
-                  { label: "Bukti pembayaran QRIS sudah diunggah", ok: !!d.bukti_bayar },
+                  { label: "Bukti pembayaran DANA sudah diunggah", ok: !!d.bukti_bayar },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2">
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${item.ok ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-400"}`}>

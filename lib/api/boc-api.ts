@@ -4,7 +4,7 @@
  * Single gateway ke Google Apps Script backend.
  * Semua request dikirim melalui Next.js proxy (/api/register) untuk menghindari CORS.
  *
- * Sistem Pembayaran: QRIS tunggal Rp100.000/Tim
+ * Sistem Pembayaran: DANA Rp100.000/Tim
  * Status: MENUNGGU | DISETUJUI | DITOLAK
  */
 
