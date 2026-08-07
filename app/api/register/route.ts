@@ -109,9 +109,23 @@ export async function POST(request: Request) {
     try {
       data = JSON.parse(text);
     } catch {
-      console.error("[API] JSON parse error:", text.slice(0, 200));
+      console.error("[API] JSON parse error. Raw response sample:", text.slice(0, 500));
+      let cleanMessage = "Server Google merespons dengan format yang tidak valid.";
+      
+      const summaryMatch = text.match(/<div id="summary">(.*?)<\/div>/s);
+      const titleMatch   = text.match(/<title>(.*?)<\/title>/i);
+      const exceptionMatch = text.match(/Exception:\s*([^\n<]+)/i);
+
+      if (summaryMatch && summaryMatch[1]) {
+        cleanMessage = summaryMatch[1].replace(/<[^>]+>/g, "").trim();
+      } else if (exceptionMatch && exceptionMatch[1]) {
+        cleanMessage = exceptionMatch[1].trim();
+      } else if (titleMatch && titleMatch[1]) {
+        cleanMessage = titleMatch[1].trim();
+      }
+
       return NextResponse.json(
-        { status: "error", message: "Server Google merespons dengan format yang tidak valid." },
+        { status: "error", message: `Server Google Script Error: ${cleanMessage}` },
         { status: 502 }
       );
     }
