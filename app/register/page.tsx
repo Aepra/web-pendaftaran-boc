@@ -678,27 +678,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Progress bar upload */}
-            {uploadProgress && (
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-blue-700">
-                    Mengupload: {uploadProgress.label}
-                  </span>
-                  <span className="text-xs font-bold text-blue-700">
-                    {uploadProgress.current}/{uploadProgress.total}
-                  </span>
-                </div>
-                <div className="w-full bg-blue-100 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-blue-500 mt-1">Mohon tunggu, jangan tutup halaman ini.</p>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={isLoading}
@@ -710,7 +689,7 @@ export default function RegisterPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  {uploadProgress ? `Mengupload ${uploadProgress.current}/${uploadProgress.total}...` : "Memproses..."}
+                  Memproses Pendaftaran...
                 </>
               ) : (
                 <>
