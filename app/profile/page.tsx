@@ -8,6 +8,7 @@ import {
   getRegistrationsByEmail,
   getRegistrationDetail,
   updateRegistration,
+  uploadSingleFile,
 } from "@/lib/api/boc-api";
 import type {
   RegistrationHistoryItem,
@@ -176,6 +177,7 @@ function EditPanel({
   });
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -187,11 +189,14 @@ function EditPanel({
     if (!file) return;
     if (!file.type.startsWith("image/")) { alert("Hanya file gambar yang diperbolehkan."); e.target.value = ""; return; }
     try {
-      setStatus("loading");
+      setUploadingFields((prev) => ({ ...prev, [field]: true }));
       const b64 = await compressImage(file);
-      sd((prev) => ({ ...prev, [field]: b64 }));
-    } catch { alert("Gagal memproses gambar."); e.target.value = ""; }
-    finally { setStatus("idle"); }
+      const prefix = d.nama_tim ? d.nama_tim.replace(/[^a-zA-Z0-9]/g, "_") : "Tim";
+      const filename = `${prefix}_Update_${String(field)}.jpg`;
+      const url = await uploadSingleFile(b64, filename);
+      sd((prev) => ({ ...prev, [field]: url }));
+    } catch { alert("Gagal mengunggah gambar."); e.target.value = ""; }
+    finally { setUploadingFields((prev) => ({ ...prev, [field]: false })); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

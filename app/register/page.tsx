@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRegistration } from "@/contexts/registration-context";
 import { useEffect, useState, useRef } from "react";
 import type { RegistrationFormData } from "@/types";
-import { registerParticipant } from "@/lib/api/boc-api";
+import { registerParticipant, uploadSingleFile } from "@/lib/api/boc-api";
 import { formatRupiah } from "@/lib/utils";
 
 const BIAYA_PENDAFTARAN = 100000;
@@ -98,9 +98,8 @@ export default function RegisterPage() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [copiedDana, setCopiedDana] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; label: string } | null>(null);
+  const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({});
   const isSubmitting = useRef(false);
-  const uploadCache = useRef<Record<string, { base64: string; url: string }>>({});
 
   // Redirect jika belum login
   useEffect(() => {
@@ -146,14 +145,18 @@ export default function RegisterPage() {
       return;
     }
     try {
-      setSubmitStatus("loading");
+      setUploadingFields((prev) => ({ ...prev, [fieldName]: true }));
       const base64 = await compressImage(file);
-      sd((prev) => ({ ...prev, [fieldName]: base64 }));
+      const prefix = d.nama_tim ? d.nama_tim.replace(/[^a-zA-Z0-9]/g, "_") : "Tim";
+      const filename = `${prefix}_${String(fieldName)}.jpg`;
+      
+      const url = await uploadSingleFile(base64, filename);
+      sd((prev) => ({ ...prev, [fieldName]: url }));
     } catch {
-      alert("Gagal memproses gambar. Coba gambar lain.");
+      alert("Gagal mengunggah gambar. Coba gambar lain.");
       e.target.value = "";
     } finally {
-      setSubmitStatus("idle");
+      setUploadingFields((prev) => ({ ...prev, [fieldName]: false }));
     }
   };
 
@@ -199,25 +202,22 @@ export default function RegisterPage() {
   // ======================
   // Submit
   // ======================
-  // Upload satu file ke Google Drive via GAS, kembalikan URL
-  const uploadFileToDrive = async (base64: string, filename: string): Promise<string> => {
-    if (!base64) return "";
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "upload_file", filename, data: base64 }),
-    });
-    const json = await res.json();
-    if (json.status === "success" && json.data?.url) return json.data.url;
-    throw new Error("Gagal upload file: " + filename);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting.current) return;
     isSubmitting.current = true;
 
     setErrorMsg("");
+
+    // Cek apakah ada file yang sedang diunggah
+    const isAnyUploading = Object.values(uploadingFields).some(Boolean);
+    if (isAnyUploading) {
+      setErrorMsg("Mohon tunggu hingga semua gambar selesai diunggah ke Google Drive.");
+      setSubmitStatus("error");
+      isSubmitting.current = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
     const err = validate();
     if (err) {
@@ -229,56 +229,10 @@ export default function RegisterPage() {
     }
 
     setSubmitStatus("loading");
-    setUploadProgress(null);
 
     try {
-      // ================================================================
-      // FASE 1: Upload setiap gambar satu per satu ke Google Drive
-      // ================================================================
-      const prefix = d.nama_tim.replace(/[^a-zA-Z0-9]/g, "_");
-
-      // Buat daftar file yang perlu diupload
-      type FileUpload = { key: string; base64: string; label: string };
-      const filesToUpload: FileUpload[] = [
-        { key: "foto_ketua",             base64: d.foto_ketua,             label: "Foto Ketua" },
-        { key: "kartu_pelajar_ketua",    base64: d.kartu_pelajar_ketua,    label: "Kartu Pelajar Ketua" },
-        { key: "bukti_follow_boc_ketua", base64: d.bukti_follow_boc_ketua, label: "Bukti Follow BoC Ketua" },
-        { key: "bukti_follow_yv_ketua",  base64: d.bukti_follow_yv_ketua,  label: "Bukti Follow YV Ketua" },
-        { key: "bukti_bayar",            base64: d.bukti_bayar,            label: "Bukti Pembayaran" },
-        { key: "foto_anggota_1",             base64: d.foto_anggota_1,             label: "Foto Anggota 1" },
-        { key: "kartu_pelajar_anggota_1",    base64: d.kartu_pelajar_anggota_1,    label: "Kartu Pelajar Anggota 1" },
-        { key: "bukti_follow_boc_anggota_1", base64: d.bukti_follow_boc_anggota_1, label: "Bukti Follow BoC Anggota 1" },
-        { key: "bukti_follow_yv_anggota_1",  base64: d.bukti_follow_yv_anggota_1,  label: "Bukti Follow YV Anggota 1" },
-        { key: "foto_anggota_2",             base64: d.foto_anggota_2,             label: "Foto Anggota 2" },
-        { key: "kartu_pelajar_anggota_2",    base64: d.kartu_pelajar_anggota_2,    label: "Kartu Pelajar Anggota 2" },
-        { key: "bukti_follow_boc_anggota_2", base64: d.bukti_follow_boc_anggota_2, label: "Bukti Follow BoC Anggota 2" },
-        { key: "bukti_follow_yv_anggota_2",  base64: d.bukti_follow_yv_anggota_2,  label: "Bukti Follow YV Anggota 2" },
-      ];
-
-      const uploadedUrls: Record<string, string> = {};
-      for (let i = 0; i < filesToUpload.length; i++) {
-        const f = filesToUpload[i];
-        setUploadProgress({ current: i + 1, total: filesToUpload.length, label: f.label });
-
-        // Cek cache upload
-        const cached = uploadCache.current[f.key];
-        if (cached && cached.base64 === f.base64) {
-          uploadedUrls[f.key] = cached.url;
-          continue; // Skip upload karena gambar persis sama dan sudah terupload
-        }
-
-        const url = await uploadFileToDrive(f.base64, `${prefix}_${f.label}.jpg`);
-        uploadedUrls[f.key] = url;
-        
-        // Simpan ke cache
-        uploadCache.current[f.key] = { base64: f.base64, url };
-      }
-
-      // ================================================================
-      // FASE 2: Submit data teks + URL (ringan, cepat)
-      // ================================================================
-      setUploadProgress({ current: filesToUpload.length, total: filesToUpload.length, label: "Menyimpan data..." });
-
+      // Seluruh 13 gambar sudah dalam bentuk URL Google Drive di `d`
+      // Langsung simpan ke backend (proses instant < 1 detik)
       const result = await registerParticipant({
         nama_tim: d.nama_tim,
         nama_ketua: d.leaderName,
@@ -291,25 +245,23 @@ export default function RegisterPage() {
         nama_anggota_2: d.nama_anggota_2,
         whatsapp_anggota_2: d.whatsapp_anggota_2,
         notes: d.notes,
-        foto_ketua:                 uploadedUrls["foto_ketua"] || "",
-        kartu_pelajar_ketua:        uploadedUrls["kartu_pelajar_ketua"] || "",
-        bukti_follow_boc_ketua:     uploadedUrls["bukti_follow_boc_ketua"] || "",
-        bukti_follow_yv_ketua:      uploadedUrls["bukti_follow_yv_ketua"] || "",
-        foto_anggota_1:             uploadedUrls["foto_anggota_1"] || "",
-        kartu_pelajar_anggota_1:    uploadedUrls["kartu_pelajar_anggota_1"] || "",
-        bukti_follow_boc_anggota_1: uploadedUrls["bukti_follow_boc_anggota_1"] || "",
-        bukti_follow_yv_anggota_1:  uploadedUrls["bukti_follow_yv_anggota_1"] || "",
-        foto_anggota_2:             uploadedUrls["foto_anggota_2"] || "",
-        kartu_pelajar_anggota_2:    uploadedUrls["kartu_pelajar_anggota_2"] || "",
-        bukti_follow_boc_anggota_2: uploadedUrls["bukti_follow_boc_anggota_2"] || "",
-        bukti_follow_yv_anggota_2:  uploadedUrls["bukti_follow_yv_anggota_2"] || "",
-        bukti_bayar:                uploadedUrls["bukti_bayar"] || "",
+        foto_ketua:                 d.foto_ketua || "",
+        kartu_pelajar_ketua:        d.kartu_pelajar_ketua || "",
+        bukti_follow_boc_ketua:     d.bukti_follow_boc_ketua || "",
+        bukti_follow_yv_ketua:      d.bukti_follow_yv_ketua || "",
+        foto_anggota_1:             d.foto_anggota_1 || "",
+        kartu_pelajar_anggota_1:    d.kartu_pelajar_anggota_1 || "",
+        bukti_follow_boc_anggota_1: d.bukti_follow_boc_anggota_1 || "",
+        bukti_follow_yv_anggota_1:  d.bukti_follow_yv_anggota_1 || "",
+        foto_anggota_2:             d.foto_anggota_2 || "",
+        kartu_pelajar_anggota_2:    d.kartu_pelajar_anggota_2 || "",
+        bukti_follow_boc_anggota_2: d.bukti_follow_boc_anggota_2 || "",
+        bukti_follow_yv_anggota_2:  d.bukti_follow_yv_anggota_2 || "",
+        bukti_bayar:                d.bukti_bayar || "",
         link_twibbon_ketua:         d.link_twibbon_ketua || "",
         link_twibbon_anggota_1:     d.link_twibbon_anggota_1 || "",
         link_twibbon_anggota_2:     d.link_twibbon_anggota_2 || "",
       });
-
-      setUploadProgress(null);
 
       if (result.status === "success" && result.data) {
         setData(result.data);
@@ -323,7 +275,6 @@ export default function RegisterPage() {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } catch (err) {
-      setUploadProgress(null);
       setErrorMsg(err instanceof Error ? err.message : "Terjadi kesalahan jaringan.");
       setSubmitStatus("error");
       isSubmitting.current = false;
@@ -472,7 +423,7 @@ export default function RegisterPage() {
                   disabled={isLoading}
                   className={fileCls}
                 />
-                <UploadBadge value={d.bukti_bayar} />
+                <UploadBadge value={d.bukti_bayar} isUploading={uploadingFields["bukti_bayar"]} />
                 {!d.bukti_bayar && (
                   <p className="text-xs text-[#700702]/70 mt-1">
                     Formulir tidak dapat dikirim tanpa bukti pembayaran.
@@ -562,22 +513,22 @@ export default function RegisterPage() {
                 <div>
                   <label className={labelCls}>Pas Foto <Req /></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_ketua")} disabled={isLoading} className={fileCls} />
-                  <UploadBadge value={d.foto_ketua} />
+                  <UploadBadge value={d.foto_ketua} isUploading={uploadingFields["foto_ketua"]} />
                 </div>
                 <div>
                   <label className={labelCls}>Kartu Pelajar <Req /></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_ketua")} disabled={isLoading} className={fileCls} />
-                  <UploadBadge value={d.kartu_pelajar_ketua} />
+                  <UploadBadge value={d.kartu_pelajar_ketua} isUploading={uploadingFields["kartu_pelajar_ketua"]} />
                 </div>
                 <div>
                   <label className={labelCls}>Bukti Follow BoC <Req /></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_ketua")} disabled={isLoading} className={fileCls} />
-                  <UploadBadge value={d.bukti_follow_boc_ketua} />
+                  <UploadBadge value={d.bukti_follow_boc_ketua} isUploading={uploadingFields["bukti_follow_boc_ketua"]} />
                 </div>
                 <div>
                   <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_ketua")} disabled={isLoading} className={fileCls} />
-                  <UploadBadge value={d.bukti_follow_yv_ketua} />
+                  <UploadBadge value={d.bukti_follow_yv_ketua} isUploading={uploadingFields["bukti_follow_yv_ketua"]} />
                 </div>
                 <div>
                   <label className={labelCls}>Link Twibbon <Req /></label>
@@ -609,22 +560,22 @@ export default function RegisterPage() {
                   <div>
                     <label className={labelCls}>Pas Foto <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_anggota_1")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.foto_anggota_1} />
+                    <UploadBadge value={d.foto_anggota_1} isUploading={uploadingFields["foto_anggota_1"]} />
                   </div>
                   <div>
                     <label className={labelCls}>Kartu Pelajar <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_anggota_1")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.kartu_pelajar_anggota_1} />
+                    <UploadBadge value={d.kartu_pelajar_anggota_1} isUploading={uploadingFields["kartu_pelajar_anggota_1"]} />
                   </div>
                   <div>
                     <label className={labelCls}>Bukti Follow BoC <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_anggota_1")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.bukti_follow_boc_anggota_1} />
+                    <UploadBadge value={d.bukti_follow_boc_anggota_1} isUploading={uploadingFields["bukti_follow_boc_anggota_1"]} />
                   </div>
                   <div>
                     <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.bukti_follow_yv_anggota_1} />
+                    <UploadBadge value={d.bukti_follow_yv_anggota_1} isUploading={uploadingFields["bukti_follow_yv_anggota_1"]} />
                   </div>
                   <div>
                     <label className={labelCls}>Link Twibbon <Req /></label>
@@ -656,22 +607,22 @@ export default function RegisterPage() {
                   <div>
                     <label className={labelCls}>Pas Foto <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_anggota_2")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.foto_anggota_2} />
+                    <UploadBadge value={d.foto_anggota_2} isUploading={uploadingFields["foto_anggota_2"]} />
                   </div>
                   <div>
                     <label className={labelCls}>Kartu Pelajar <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_anggota_2")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.kartu_pelajar_anggota_2} />
+                    <UploadBadge value={d.kartu_pelajar_anggota_2} isUploading={uploadingFields["kartu_pelajar_anggota_2"]} />
                   </div>
                   <div>
                     <label className={labelCls}>Bukti Follow BoC <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_anggota_2")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.bukti_follow_boc_anggota_2} />
+                    <UploadBadge value={d.bukti_follow_boc_anggota_2} isUploading={uploadingFields["bukti_follow_boc_anggota_2"]} />
                   </div>
                   <div>
                     <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fileCls} />
-                    <UploadBadge value={d.bukti_follow_yv_anggota_2} />
+                    <UploadBadge value={d.bukti_follow_yv_anggota_2} isUploading={uploadingFields["bukti_follow_yv_anggota_2"]} />
                   </div>
                   <div>
                     <label className={labelCls}>Link Twibbon <Req /></label>

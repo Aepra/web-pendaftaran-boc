@@ -71,6 +71,24 @@ export async function getUserByEmail(email: string): Promise<UserDTO | null> {
   return response.data;
 }
 
+/** Upload satu file biner/base64 ke Google Drive via GAS & kembalikan URL. */
+export async function uploadSingleFile(
+  base64: string,
+  filename: string
+): Promise<string> {
+  if (!base64) return "";
+  const response = await callApi<BocApiResponse<{ url: string }>>({
+    action: "upload_file",
+    filename,
+    data: base64,
+  });
+
+  if (response.status === "success" && response.data?.url) {
+    return response.data.url;
+  }
+  throw new Error("Gagal mengunggah file: " + filename);
+}
+
 // ======================
 // Registrasi — User
 // ======================
