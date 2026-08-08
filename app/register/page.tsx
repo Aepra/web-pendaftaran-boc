@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useRegistration } from "@/contexts/registration-context";
@@ -390,6 +391,16 @@ export default function RegisterPage() {
                   <div className="mt-2 text-[#002D61]/70">
                     <span className="block text-[11px] uppercase tracking-wider">Nama pemilik</span>
                     <strong className="block mt-0.5 text-sm leading-snug break-words text-[#002D61]">{DANA_ACCOUNT_NAME}</strong>
+                  </div>
+                  <div className="mt-4 flex flex-col items-center rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
+                    <p className="text-xs font-extrabold text-emerald-800">Atau scan QR untuk pembayaran</p>
+                    <Image
+                      src="/crop.jpeg"
+                      alt="Kode QR pembayaran"
+                      width={400}
+                      height={400}
+                      className="mt-3 w-full max-w-[260px] rounded-xl border border-emerald-200 bg-white"
+                    />
                   </div>
                 </div>
                 <ol className="space-y-2 text-sm leading-relaxed text-emerald-700">
