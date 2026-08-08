@@ -415,6 +415,7 @@ export default function RegisterPage() {
               <div>
                 <label className={labelCls}>
                   Upload Bukti Pembayaran DANA <Req />
+                  <span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span>
                 </label>
                 <input
                   type="file"
@@ -437,7 +438,7 @@ export default function RegisterPage() {
               <div className="w-5 h-5 rounded-full bg-[#700702] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">!</div>
               <div>
                 <strong className="block text-[#700702] font-extrabold mb-0.5">Penting:</strong>
-                Anda wajib mengunggah Twibbon di Instagram masing-masing peserta (Ketua, Anggota 1, dan Anggota 2).
+                Minimal satu anggota peserta wajib mengunggah Twibbon di Instagram.
                 <br />
                 Silakan download template Twibbon di sini:{" "}
                 <a 
@@ -447,6 +448,22 @@ export default function RegisterPage() {
                   className="font-extrabold text-[#002D61] underline hover:text-[#700702] transition-colors"
                 >
                   Template Twibbon BoC
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 rounded-2xl bg-[#002D61]/5 border border-[#002D61]/15 text-sm text-[#002D61]/90">
+              <strong className="block text-[#002D61] font-extrabold mb-2">Contact Person:</strong>
+              <p className="mb-2">Jika membutuhkan bantuan selama proses pendaftaran, silakan hubungi:</p>
+              <div className="flex flex-col gap-1.5">
+                <a href="https://wa.me/6285299489932" target="_blank" rel="noreferrer" className="font-semibold text-[#700702] hover:underline">
+                  Kevin Ardhana — 0852-9948-9932
+                </a>
+                <a href="https://wa.me/6285796508390" target="_blank" rel="noreferrer" className="font-semibold text-[#700702] hover:underline">
+                  Abel Eka Putra — 0857-9650-8390
+                </a>
+                <a href="https://wa.me/6285966407041" target="_blank" rel="noreferrer" className="font-semibold text-[#700702] hover:underline">
+                  Vira Anggraeni — 0859-6640-7041
                 </a>
               </div>
             </div>
@@ -511,22 +528,22 @@ export default function RegisterPage() {
               <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Ketua</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                 <div>
-                  <label className={labelCls}>Pas Foto <Req /></label>
+                  <label className={labelCls}>Pas Foto <Req /><span className="block text-xs font-semibold text-[#700702]">Wajib menggunakan seragam sekolah<br />Rekomendasi ukuran file: maksimal 200 KB</span></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_ketua")} disabled={isLoading} className={fileCls} />
                   <UploadBadge value={d.foto_ketua} isUploading={uploadingFields["foto_ketua"]} />
                 </div>
                 <div>
-                  <label className={labelCls}>Kartu Pelajar <Req /></label>
+                  <label className={labelCls}>Kartu Pelajar <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_ketua")} disabled={isLoading} className={fileCls} />
                   <UploadBadge value={d.kartu_pelajar_ketua} isUploading={uploadingFields["kartu_pelajar_ketua"]} />
                 </div>
                 <div>
-                  <label className={labelCls}>Bukti Follow BoC <Req /></label>
+                  <label className={labelCls}>Bukti Follow BoC <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_ketua")} disabled={isLoading} className={fileCls} />
                   <UploadBadge value={d.bukti_follow_boc_ketua} isUploading={uploadingFields["bukti_follow_boc_ketua"]} />
                 </div>
                 <div>
-                  <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
+                  <label className={labelCls}>Bukti Follow Youthverse <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_ketua")} disabled={isLoading} className={fileCls} />
                   <UploadBadge value={d.bukti_follow_yv_ketua} isUploading={uploadingFields["bukti_follow_yv_ketua"]} />
                 </div>
@@ -558,22 +575,22 @@ export default function RegisterPage() {
                 <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Anggota 1</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                   <div>
-                    <label className={labelCls}>Pas Foto <Req /></label>
+                    <label className={labelCls}>Pas Foto <Req /><span className="block text-xs font-semibold text-[#700702]">Wajib menggunakan seragam sekolah<br />Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_anggota_1")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.foto_anggota_1} isUploading={uploadingFields["foto_anggota_1"]} />
                   </div>
                   <div>
-                    <label className={labelCls}>Kartu Pelajar <Req /></label>
+                    <label className={labelCls}>Kartu Pelajar <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_anggota_1")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.kartu_pelajar_anggota_1} isUploading={uploadingFields["kartu_pelajar_anggota_1"]} />
                   </div>
                   <div>
-                    <label className={labelCls}>Bukti Follow BoC <Req /></label>
+                    <label className={labelCls}>Bukti Follow BoC <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_anggota_1")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.bukti_follow_boc_anggota_1} isUploading={uploadingFields["bukti_follow_boc_anggota_1"]} />
                   </div>
                   <div>
-                    <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
+                    <label className={labelCls}>Bukti Follow Youthverse <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.bukti_follow_yv_anggota_1} isUploading={uploadingFields["bukti_follow_yv_anggota_1"]} />
                   </div>
@@ -605,22 +622,22 @@ export default function RegisterPage() {
                 <p className="text-xs font-extrabold text-[#002D61]/60 uppercase tracking-wider mb-4">Berkas Anggota 2</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
                   <div>
-                    <label className={labelCls}>Pas Foto <Req /></label>
+                    <label className={labelCls}>Pas Foto <Req /><span className="block text-xs font-semibold text-[#700702]">Wajib menggunakan seragam sekolah<br />Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "foto_anggota_2")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.foto_anggota_2} isUploading={uploadingFields["foto_anggota_2"]} />
                   </div>
                   <div>
-                    <label className={labelCls}>Kartu Pelajar <Req /></label>
+                    <label className={labelCls}>Kartu Pelajar <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "kartu_pelajar_anggota_2")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.kartu_pelajar_anggota_2} isUploading={uploadingFields["kartu_pelajar_anggota_2"]} />
                   </div>
                   <div>
-                    <label className={labelCls}>Bukti Follow BoC <Req /></label>
+                    <label className={labelCls}>Bukti Follow BoC <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_boc_anggota_2")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.bukti_follow_boc_anggota_2} isUploading={uploadingFields["bukti_follow_boc_anggota_2"]} />
                   </div>
                   <div>
-                    <label className={labelCls}>Bukti Follow Youthverse <Req /></label>
+                    <label className={labelCls}>Bukti Follow Youthverse <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.bukti_follow_yv_anggota_2} isUploading={uploadingFields["bukti_follow_yv_anggota_2"]} />
                   </div>

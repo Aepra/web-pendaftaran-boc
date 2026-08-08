@@ -24,12 +24,23 @@ export default function Contact() {
             <p className="text-xs text-green-600/80 mb-4">Response: &lt; 30 menit</p>
             <div className="flex flex-col gap-3 items-center">
               <a
-                href="https://wa.me/6282244724337"
+                href="https://wa.me/6285299489932"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-[#700702] font-semibold hover:text-[#8a0903] text-sm transition-colors"
               >
-                Atika: 0822-4472-4337
+                Kevin Ardhana: 0852-9948-9932
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+              <a
+                href="https://wa.me/6285796508390"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-[#700702] font-semibold hover:text-[#8a0903] text-sm transition-colors"
+              >
+                Abel Eka Putra: 0857-9650-8390
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -40,7 +51,7 @@ export default function Contact() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-[#700702] font-semibold hover:text-[#8a0903] text-sm transition-colors"
               >
-                Vira: 0859-6640-7041
+                Vira Anggraeni: 0859-6640-7041
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>

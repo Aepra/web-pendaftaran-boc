@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { useRegistration } from "@/contexts/registration-context";
 import {
   getUserByEmail,
   getRegistrationsByEmail,
@@ -273,22 +274,22 @@ function EditPanel({
           <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Ketua</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className={lc}>Pas Foto</label>
+              <label className={lc}>Pas Foto<span className="block text-xs font-semibold text-[#700702]">Wajib menggunakan seragam sekolah<br />Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_ketua")} disabled={isLoading} className={fc} />
               {d.foto_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Kartu Pelajar</label>
+              <label className={lc}>Kartu Pelajar<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_ketua")} disabled={isLoading} className={fc} />
               {d.kartu_pelajar_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Follow BoC</label>
+              <label className={lc}>Follow BoC<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_ketua")} disabled={isLoading} className={fc} />
               {d.bukti_follow_boc_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Follow Youthverse</label>
+              <label className={lc}>Follow Youthverse<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_ketua")} disabled={isLoading} className={fc} />
               {d.bukti_follow_yv_ketua && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
@@ -304,22 +305,22 @@ function EditPanel({
           <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Anggota 1</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className={lc}>Pas Foto</label>
+              <label className={lc}>Pas Foto<span className="block text-xs font-semibold text-[#700702]">Wajib menggunakan seragam sekolah<br />Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_anggota_1")} disabled={isLoading} className={fc} />
               {d.foto_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Kartu Pelajar</label>
+              <label className={lc}>Kartu Pelajar<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_anggota_1")} disabled={isLoading} className={fc} />
               {d.kartu_pelajar_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Follow BoC</label>
+              <label className={lc}>Follow BoC<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_anggota_1")} disabled={isLoading} className={fc} />
               {d.bukti_follow_boc_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Follow Youthverse</label>
+              <label className={lc}>Follow Youthverse<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fc} />
               {d.bukti_follow_yv_anggota_1 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
@@ -335,22 +336,22 @@ function EditPanel({
           <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Berkas Anggota 2</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className={lc}>Pas Foto</label>
+              <label className={lc}>Pas Foto<span className="block text-xs font-semibold text-[#700702]">Wajib menggunakan seragam sekolah<br />Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "foto_anggota_2")} disabled={isLoading} className={fc} />
               {d.foto_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Kartu Pelajar</label>
+              <label className={lc}>Kartu Pelajar<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "kartu_pelajar_anggota_2")} disabled={isLoading} className={fc} />
               {d.kartu_pelajar_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Follow BoC</label>
+              <label className={lc}>Follow BoC<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_boc_anggota_2")} disabled={isLoading} className={fc} />
               {d.bukti_follow_boc_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
             <div>
-              <label className={lc}>Follow Youthverse</label>
+              <label className={lc}>Follow Youthverse<span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
               <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fc} />
               {d.bukti_follow_yv_anggota_2 && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
             </div>
@@ -363,6 +364,7 @@ function EditPanel({
 
         <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
           <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Bukti Pembayaran DANA</p>
+          <p className="text-xs font-semibold text-[#700702] mb-1">Rekomendasi ukuran file: maksimal 200 KB</p>
           <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_bayar")} disabled={isLoading} className={fc} />
           {d.bukti_bayar && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
         </div>
@@ -392,12 +394,14 @@ function RegistrationCard({
   item,
   email,
   onRefresh,
+  initialOpen = false,
 }: {
   item: RegistrationHistoryItem;
   email: string;
   onRefresh: () => void;
+  initialOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [detail, setDetail] = useState<RegistrationDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -412,6 +416,12 @@ function RegistrationCard({
     setDetail(d);
     setLoadingDetail(false);
   }, [detail, item.registration_id, email]);
+
+  useEffect(() => {
+    if (!initialOpen) return;
+    const timer = window.setTimeout(() => void loadDetail(), 0);
+    return () => window.clearTimeout(timer);
+  }, [initialOpen, loadDetail]);
 
   const handleToggle = () => {
     setOpen((v) => !v);
@@ -630,6 +640,7 @@ function RegistrationCard({
 // ======================
 export default function ProfilePage() {
   const { isAuthenticated, user, logout } = useAuth();
+  const { data: latestRegistration } = useRegistration();
   const router = useRouter();
 
   const [registrations, setRegistrations] = useState<RegistrationHistoryItem[]>([]);
@@ -723,14 +734,8 @@ export default function ProfilePage() {
 
         {/* List of Registrations */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between px-2">
+          <div className="px-2">
             <h3 className="text-lg font-extrabold text-[#002D61]">Riwayat Pendaftaran</h3>
-            <button
-              onClick={() => router.push("/register")}
-              className="px-4 py-2 bg-[#700702] hover:bg-[#8a0903] text-white text-sm font-bold rounded-xl shadow-md transition-colors"
-            >
-              + Daftar Tim Baru
-            </button>
           </div>
 
           {loading ? (
@@ -760,6 +765,7 @@ export default function ProfilePage() {
                   item={reg}
                   email={user.email}
                   onRefresh={() => setRefreshKey((k) => k + 1)}
+                  initialOpen={reg.registration_id === latestRegistration?.registration_id}
                 />
               ))}
             </div>
