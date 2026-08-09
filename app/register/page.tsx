@@ -495,7 +495,7 @@ export default function RegisterPage() {
                 <br />
                 Silakan download template Twibbon di sini:{" "}
                 <a 
-                  href="/twibbon%20peserta%20%28Konten%20Instagram%20%2845%29%29_20260726_203846_0000.png"
+                  href="https://twb.nz/battle-of-champions"
                   target="_blank" 
                   rel="noreferrer" 
                   className="font-extrabold text-[#002D61] underline hover:text-[#700702] transition-colors"
