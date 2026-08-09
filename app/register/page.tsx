@@ -410,7 +410,7 @@ export default function RegisterPage() {
                   <div className="mt-4 flex flex-col items-center rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
                     <p className="text-xs font-extrabold text-emerald-800">Atau scan QR untuk pembayaran</p>
                     <Image
-                      src="/crop.jpeg"
+                      src="/qr-standar-kompatibel.png"
                       alt="Kode QR pembayaran"
                       width={400}
                       height={400}
