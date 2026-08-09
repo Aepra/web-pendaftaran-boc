@@ -16,6 +16,22 @@ const BANK_ACCOUNTS = [
   { bank: "BRI", number: "155401004849531", accountName: "Vira Anggraeni" },
   { bank: "BNI", number: "1285149164", accountName: "Vira Anggraeni" },
 ] as const;
+const TWIBBON_CAPTION = `[READY TO SOLVE THE CASE? ]
+
+I’m (Name) from (School), and I’m ready for Battle of Champions III!
+
+From tracking clues and identifying suspects to cracking codes and solving the final challenge, every stage will test our logic, speed, strategy, and teamwork.
+
+ClashMind: Think Faster, Solve Smarter. ✨
+
+So… will you crack the case?
+LET THE HUNT BEGIN.
+
+@battleofchampions_
+
+#BeTheBest #BeTheChampion
+#BattleOfChampionsIII #ClashMind
+#ThinkFasterSolveSmarter #LetTheHuntBegin`;
 
 // ======================
 // Helper: Image Compression
@@ -104,6 +120,7 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [copiedDana, setCopiedDana] = useState(false);
   const [copiedBank, setCopiedBank] = useState<string | null>(null);
+  const [copiedTwibbonCaption, setCopiedTwibbonCaption] = useState(false);
   const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({});
   const isSubmitting = useRef(false);
 
@@ -183,6 +200,16 @@ export default function RegisterPage() {
       window.setTimeout(() => setCopiedBank(null), 2000);
     } catch {
       setCopiedBank(null);
+    }
+  };
+
+  const handleCopyTwibbonCaption = async () => {
+    try {
+      await navigator.clipboard.writeText(TWIBBON_CAPTION);
+      setCopiedTwibbonCaption(true);
+      window.setTimeout(() => setCopiedTwibbonCaption(false), 2000);
+    } catch {
+      setCopiedTwibbonCaption(false);
     }
   };
 
@@ -507,6 +534,22 @@ export default function RegisterPage() {
                   Template Twibbon BoC
                 </a>
               </div>
+            </div>
+
+            <div className="mt-4 p-4 rounded-2xl bg-[#002D61]/5 border border-[#002D61]/15 text-sm text-[#002D61]/90">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <strong className="text-[#002D61] font-extrabold">Caption Twibbon</strong>
+                <button
+                  type="button"
+                  onClick={handleCopyTwibbonCaption}
+                  className="self-start px-3 py-1.5 rounded-lg bg-[#002D61] text-white text-xs font-bold hover:bg-[#002D61]/90 transition sm:self-auto"
+                >
+                  {copiedTwibbonCaption ? "Caption Tersalin" : "Salin Caption"}
+                </button>
+              </div>
+              <p className="mt-3 whitespace-pre-wrap rounded-xl bg-white/80 p-3 text-sm leading-relaxed text-[#002D61]">
+                {TWIBBON_CAPTION}
+              </p>
             </div>
 
             <div className="mt-4 p-4 rounded-2xl bg-[#002D61]/5 border border-[#002D61]/15 text-sm text-[#002D61]/90">
