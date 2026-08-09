@@ -569,11 +569,11 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* === SECTION 1: TIM & INSTANSI === */}
+          {/* === SECTION 1: TIM & SEKOLAH === */}
           <div className={sectionCls}>
             <div className={sectionHeaderCls}>
               <div className="w-9 h-9 rounded-full bg-[#002D61] text-white flex items-center justify-center font-bold">1</div>
-              <h2 className="text-xl font-extrabold text-[#002D61]">Informasi Tim & Instansi</h2>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Informasi Tim & Sekolah</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -589,7 +589,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <label className={labelCls}>Asal Sekolah / Instansi <Req /></label>
+                <label className={labelCls}>Asal Sekolah <Req /></label>
                 <input
                   name="institution"
                   required
@@ -780,7 +780,7 @@ export default function RegisterPage() {
               <p className="text-xs font-bold text-[#002D61] mb-3 uppercase tracking-wider">Pastikan sebelum submit:</p>
               <div className="space-y-1.5">
                 {[
-                  { label: "Data tim & instansi sudah diisi", ok: !!(d.nama_tim && d.institution) },
+                  { label: "Data tim & sekolah sudah diisi", ok: !!(d.nama_tim && d.institution) },
                   { label: "Data ketua sudah lengkap", ok: !!(d.leaderName && d.whatsapp && d.email) },
                   { label: "Berkas ketua sudah diunggah", ok: !!(d.foto_ketua && d.kartu_pelajar_ketua && d.bukti_follow_boc_ketua && d.bukti_follow_yv_ketua) },
                   { label: "Bukti pembayaran sudah diunggah", ok: !!d.bukti_bayar },
