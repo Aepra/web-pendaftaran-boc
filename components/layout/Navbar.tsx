@@ -11,7 +11,6 @@ const NAV_LINKS_GUEST = [
   { href: "/", label: "Home" },
   { href: "/#game-concept", label: "Babak" },
   { href: "/#timeline", label: "Timeline" },
-  { href: "/#gallery", label: "Galeri" },
   { href: "/#faq", label: "FAQ" },
   { href: "/login", label: "Login" },
 ];
@@ -20,7 +19,6 @@ const NAV_LINKS_AUTH = [
   { href: "/", label: "Home" },
   { href: "/#game-concept", label: "Babak" },
   { href: "/#timeline", label: "Timeline" },
-  { href: "/#gallery", label: "Galeri" },
   { href: "/#faq", label: "FAQ" },
   { href: "/register", label: "Pendaftaran" },
   { href: "/profile", label: "Profil" },
@@ -28,7 +26,6 @@ const NAV_LINKS_AUTH = [
 
 const NAV_LINKS_ADMIN = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/gallery", label: "Galeri" },
   { href: "/profile", label: "Profil" },
 ];
 
@@ -61,29 +58,39 @@ export default function Navbar() {
   useEffect(() => {
     if (pathname !== "/") return;
 
-    const sections = ["home", "game-concept", "timeline", "gallery", "faq"];
+    const sections = ["home", "game-concept", "timeline", "faq"];
+    const activationOffset = 80;
+    let animationFrame: number | null = null;
 
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 130; // 130px header offset
+    const updateActiveSection = () => {
       let current = "home";
 
       for (const id of sections) {
         const el = document.getElementById(id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            current = id;
-          }
+        if (el && el.getBoundingClientRect().top <= activationOffset) {
+          current = id;
         }
       }
-      setActiveSection(current);
+      setActiveSection((previous) => previous === current ? previous : current);
+    };
+
+    const handleScroll = () => {
+      if (animationFrame !== null) return;
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = null;
+        updateActiveSection();
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    window.addEventListener("resize", updateActiveSection);
+    updateActiveSection();
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", updateActiveSection);
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
+    };
   }, [pathname]);
 
   const isAdmin = isSuperAdmin || isDynamicAdmin;

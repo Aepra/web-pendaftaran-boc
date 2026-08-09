@@ -396,7 +396,7 @@ function AdminDetailPanel({
 
         {detail.bukti_bayar && (
           <div className="mb-4">
-            <p className="text-[10px] font-bold text-[#700702] uppercase mb-2">Bukti Pembayaran DANA</p>
+            <p className="text-[10px] font-bold text-[#700702] uppercase mb-2">Bukti Pembayaran</p>
             <div className="max-w-[140px]">
               <ImageThumb src={detail.bukti_bayar} label="Bukti Pembayaran" />
             </div>

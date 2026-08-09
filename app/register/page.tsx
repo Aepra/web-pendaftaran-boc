@@ -12,6 +12,10 @@ import { formatRupiah } from "@/lib/utils";
 const BIAYA_PENDAFTARAN = 100000;
 const DANA_NUMBER = "089654850260";
 const DANA_ACCOUNT_NAME = "Fitriani Nurhasanah";
+const BANK_ACCOUNTS = [
+  { bank: "BRI", number: "155401004849531", accountName: "Vira Anggraeni" },
+  { bank: "BNI", number: "1285149164", accountName: "Vira Anggraeni" },
+] as const;
 
 // ======================
 // Helper: Image Compression
@@ -99,6 +103,7 @@ export default function RegisterPage() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [copiedDana, setCopiedDana] = useState(false);
+  const [copiedBank, setCopiedBank] = useState<string | null>(null);
   const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({});
   const isSubmitting = useRef(false);
 
@@ -171,6 +176,16 @@ export default function RegisterPage() {
     }
   };
 
+  const handleCopyBankNumber = async (bank: string, number: string) => {
+    try {
+      await navigator.clipboard.writeText(number);
+      setCopiedBank(bank);
+      window.setTimeout(() => setCopiedBank(null), 2000);
+    } catch {
+      setCopiedBank(null);
+    }
+  };
+
   // ======================
   // Validasi
   // ======================
@@ -195,7 +210,7 @@ export default function RegisterPage() {
     if (!d.link_twibbon_anggota_1.trim()) return "Link Twibbon Anggota 1 wajib diisi.";
     if (!d.link_twibbon_anggota_2.trim()) return "Link Twibbon Anggota 2 wajib diisi.";
 
-    if (!d.bukti_bayar) return "Bukti pembayaran DANA wajib diunggah.";
+    if (!d.bukti_bayar) return "Bukti pembayaran wajib diunggah.";
 
     return null;
   };
@@ -346,7 +361,7 @@ export default function RegisterPage() {
                 { label: "Jenis Lomba", value: "Olimpiade" },
                 { label: "Biaya Pendaftaran", value: formatRupiah(BIAYA_PENDAFTARAN) + " / Tim" },
                 { label: "Maks. Anggota", value: "3 Orang" },
-                { label: "Pembayaran", value: "DANA" },
+                { label: "Pembayaran", value: "DANA / Bank" },
               ].map((item) => (
                 <div key={item.label} className="p-4 rounded-2xl bg-[#FFF6E9] border border-[#002D61]/10">
                   <p className="text-[10px] font-bold text-[#002D61]/50 uppercase tracking-wider mb-1">{item.label}</p>
@@ -356,7 +371,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* === SECTION B: PEMBAYARAN DANA === */}
+          {/* === SECTION B: PEMBAYARAN === */}
           <div className={sectionCls}>
             <div className={sectionHeaderCls}>
               <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
@@ -364,7 +379,7 @@ export default function RegisterPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 2v8m0 0v2m0-2c-1.657 0-3-.895-3-2m3 2c1.657 0 3-.895 3-2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-extrabold text-[#002D61]">Pembayaran DANA</h2>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Pembayaran DANA / Transfer Bank</h2>
             </div>
 
             {/* Petunjuk & Upload */}
@@ -403,14 +418,41 @@ export default function RegisterPage() {
                     />
                   </div>
                 </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {BANK_ACCOUNTS.map((account) => (
+                    <div key={account.bank} className="p-4 rounded-xl bg-white border border-emerald-200">
+                      <p className="text-[11px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider">
+                        Transfer ke Bank {account.bank}
+                      </p>
+                      <div className="mt-2 flex flex-col items-start gap-2">
+                        <p className="text-base sm:text-lg font-black tracking-[0.06em] break-all text-[#002D61]">
+                          {account.number}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyBankNumber(account.bank, account.number)}
+                          className="px-3 py-1.5 rounded-lg bg-[#002D61] text-white text-xs font-bold hover:bg-[#002D61]/90 transition"
+                        >
+                          {copiedBank === account.bank ? "Tersalin" : "Salin Nomor"}
+                        </button>
+                      </div>
+                      <div className="mt-2 text-[#002D61]/70">
+                        <span className="block text-[11px] uppercase tracking-wider">Nama pemilik</span>
+                        <strong className="block mt-0.5 text-sm leading-snug break-words text-[#002D61]">
+                          {account.accountName}
+                        </strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
                 <ol className="space-y-2 text-sm leading-relaxed text-emerald-700">
                   <li className="flex gap-2">
                     <span className="w-4 font-bold flex-shrink-0">1.</span>
-                    <span className="min-w-0">Transfer tepat <strong>{formatRupiah(BIAYA_PENDAFTARAN)}</strong> ke nomor DANA di atas.</span>
+                    <span className="min-w-0">Transfer tepat <strong>{formatRupiah(BIAYA_PENDAFTARAN)}</strong> ke salah satu akun pembayaran di atas.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="w-4 font-bold flex-shrink-0">2.</span>
-                    <span className="min-w-0">Pastikan nama penerima adalah <strong>{DANA_ACCOUNT_NAME}</strong>.</span>
+                    <span className="min-w-0">Pastikan nama penerima sesuai dengan nama pemilik akun yang dipilih.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="w-4 font-bold flex-shrink-0">3.</span>
@@ -425,7 +467,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className={labelCls}>
-                  Upload Bukti Pembayaran DANA <Req />
+                  Upload Bukti Pembayaran <Req />
                   <span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span>
                 </label>
                 <input
@@ -453,7 +495,7 @@ export default function RegisterPage() {
                 <br />
                 Silakan download template Twibbon di sini:{" "}
                 <a 
-                  href="[MASUKKAN_LINK_DOWNLOAD_TWIBBON_DI_SINI]" 
+                  href="/twibbon%20peserta%20%28Konten%20Instagram%20%2845%29%29_20260726_203846_0000.png"
                   target="_blank" 
                   rel="noreferrer" 
                   className="font-extrabold text-[#002D61] underline hover:text-[#700702] transition-colors"
@@ -694,7 +736,7 @@ export default function RegisterPage() {
                   { label: "Data tim & instansi sudah diisi", ok: !!(d.nama_tim && d.institution) },
                   { label: "Data ketua sudah lengkap", ok: !!(d.leaderName && d.whatsapp && d.email) },
                   { label: "Berkas ketua sudah diunggah", ok: !!(d.foto_ketua && d.kartu_pelajar_ketua && d.bukti_follow_boc_ketua && d.bukti_follow_yv_ketua) },
-                  { label: "Bukti pembayaran DANA sudah diunggah", ok: !!d.bukti_bayar },
+                  { label: "Bukti pembayaran sudah diunggah", ok: !!d.bukti_bayar },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2">
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${item.ok ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-400"}`}>

@@ -363,7 +363,7 @@ function EditPanel({
         </div>
 
         <div className="mt-4 p-4 rounded-xl bg-white border border-[#002D61]/10">
-          <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Bukti Pembayaran DANA</p>
+          <p className="text-xs font-bold text-[#002D61] uppercase tracking-wider mb-3">Ubah Bukti Pembayaran</p>
           <p className="text-xs font-semibold text-[#700702] mb-1">Rekomendasi ukuran file: maksimal 200 KB</p>
           <input type="file" accept="image/*" onChange={(e) => handleFile(e, "bukti_bayar")} disabled={isLoading} className={fc} />
           {d.bukti_bayar && <span className="text-[10px] text-emerald-600 mt-1 block font-bold">✓ Tersimpan</span>}
@@ -573,7 +573,7 @@ function RegistrationCard({
               <div>
                 <p className="text-xs font-extrabold text-[#002D61]/40 uppercase tracking-wider mb-3">Bukti Pembayaran</p>
                 <div className="max-w-[200px]">
-                  <ImageThumb src={detail.bukti_bayar} label="Bukti Pembayaran DANA" />
+                  <ImageThumb src={detail.bukti_bayar} label="Bukti Pembayaran" />
                 </div>
               </div>
 

@@ -57,11 +57,6 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <Link href="/gallery" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">
-                  Galeri Dokumentasi
-                </Link>
-              </li>
-              <li>
                 <a href="#faq" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">
                   FAQ & Briefing
                 </a>
