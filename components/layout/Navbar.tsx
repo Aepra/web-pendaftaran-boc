@@ -9,6 +9,7 @@ import { getAdmins } from "@/lib/api/boc-api";
 
 const NAV_LINKS_GUEST = [
   { href: "/", label: "Home" },
+  { href: "/#about", label: "Tentang" },
   { href: "/#game-concept", label: "Babak" },
   { href: "/#timeline", label: "Timeline" },
   { href: "/#faq", label: "FAQ" },
@@ -17,6 +18,7 @@ const NAV_LINKS_GUEST = [
 
 const NAV_LINKS_AUTH = [
   { href: "/", label: "Home" },
+  { href: "/#about", label: "Tentang" },
   { href: "/#game-concept", label: "Babak" },
   { href: "/#timeline", label: "Timeline" },
   { href: "/#faq", label: "FAQ" },
@@ -33,7 +35,7 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isDynamicAdmin, setIsDynamicAdmin] = useState(false);
+  const [dynamicAdminCheck, setDynamicAdminCheck] = useState<{ email: string; isAdmin: boolean } | null>(null);
   const [activeSection, setActiveSection] = useState<string>("home");
 
   const superAdmin = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "abelekaputra05@gmail.com";
@@ -42,13 +44,19 @@ export default function Navbar() {
   useEffect(() => {
     if (!isAuthenticated || !user?.email || isSuperAdmin) return;
     let active = true;
+    const email = user.email;
+
     getAdmins()
       .then((admins) => {
-        if (active && user.email && admins.includes(user.email)) {
-          setIsDynamicAdmin(true);
+        if (active) {
+          setDynamicAdminCheck({ email, isAdmin: admins.includes(email) });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (active) {
+          setDynamicAdminCheck({ email, isAdmin: false });
+        }
+      });
     return () => {
       active = false;
     };
@@ -58,7 +66,7 @@ export default function Navbar() {
   useEffect(() => {
     if (pathname !== "/") return;
 
-    const sections = ["home", "game-concept", "timeline", "faq"];
+    const sections = ["home", "about", "game-concept", "timeline", "faq", "contact"];
     const activationOffset = 80;
     let animationFrame: number | null = null;
 
@@ -93,6 +101,9 @@ export default function Navbar() {
     };
   }, [pathname]);
 
+  const isDynamicAdmin = Boolean(
+    isAuthenticated && user?.email && dynamicAdminCheck?.email === user.email && dynamicAdminCheck.isAdmin
+  );
   const isAdmin = isSuperAdmin || isDynamicAdmin;
 
   const links = isAuthenticated 
