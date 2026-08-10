@@ -487,7 +487,7 @@ export default function RegisterPage() {
                   </li>
                   <li className="flex gap-2">
                     <span className="w-4 font-bold flex-shrink-0">3.</span>
-                    <span className="min-w-0">Screenshot bukti pembayaran dari aplikasi DANA.</span>
+                    <span className="min-w-0">Screenshot bukti pembayaran dari aplikasi DANA/Bank.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="w-4 font-bold flex-shrink-0">4.</span>
