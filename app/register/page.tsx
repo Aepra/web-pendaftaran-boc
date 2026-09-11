@@ -944,19 +944,6 @@ export default function RegisterPage() {
                 ))}
               </div>
             </div>
-            <div className="mb-6">
-              <label className={labelCls}>Catatan Tambahan (Opsional)</label>
-              <textarea
-                name="notes"
-                value={d.notes}
-                onChange={handleChange}
-                disabled={isLoading}
-                rows={3}
-                className={inputCls}
-                placeholder="Jika ada pesan untuk panitia..."
-              />
-            </div>
-
             {/* Checklist sebelum submit */}
             <div className="mb-6 p-4 rounded-xl bg-[#002D61]/5 border border-[#002D61]/10">
               <p className="text-xs font-bold text-[#002D61] mb-3 uppercase tracking-wider">Pastikan sebelum submit:</p>
