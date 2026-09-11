@@ -16,22 +16,17 @@ const BANK_ACCOUNTS = [
   { bank: "BRI", number: "155401004849531", accountName: "Vira Anggraeni" },
   { bank: "BNI", number: "1285149164", accountName: "Vira Anggraeni" },
 ] as const;
-const TWIBBON_CAPTION = `[READY TO SOLVE THE CASE? ]
+type PaymentMethod = "qris" | "dana" | "BRI" | "BNI";
+type RegistrationStep = 1 | 2 | 3 | 4;
+const TWIBBON_CAPTION = `[JOURNEY TO BE A CHAMPION]
 
-I’m (Name) from (School), and I’m ready for Battle of Champions III!
+I'm (Name) from (School), ready to join Battle of Champions III.
 
-From tracking clues and identifying suspects to cracking codes and solving the final challenge, every stage will test our logic, speed, strategy, and teamwork.
+Every clue, every code, every challenge is a test of speed, strategy, and teamwork.
 
-ClashMind: Think Faster, Solve Smarter. ✨
+Let the hunt begin! @battleofchampions_
 
-So… will you crack the case?
-LET THE HUNT BEGIN.
-
-@battleofchampions_
-
-#BeTheBest #BeTheChampion
-#BattleOfChampionsIII #ClashMind
-#ThinkFasterSolveSmarter #LetTheHuntBegin`;
+#BeTheBest #BeTheChampion #BattleOfChampionsIII #ClashMind`;
 
 // ======================
 // Helper: Image Compression
@@ -120,9 +115,14 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [copiedDana, setCopiedDana] = useState(false);
   const [copiedBank, setCopiedBank] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [currentStep, setCurrentStep] = useState<RegistrationStep>(1);
   const [copiedTwibbonCaption, setCopiedTwibbonCaption] = useState(false);
   const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({});
   const isSubmitting = useRef(false);
+  const selectedBankAccount = BANK_ACCOUNTS.find(
+    (account) => account.bank === selectedPaymentMethod
+  );
 
   // Redirect jika belum login
   useEffect(() => {
@@ -216,13 +216,15 @@ export default function RegisterPage() {
   // ======================
   // Validasi
   // ======================
-  const validate = (): string | null => {
+  const validateParticipantInfo = (): string | null => {
     if (!d.nama_tim.trim()) return "Nama tim wajib diisi.";
     if (!d.institution.trim()) return "Asal sekolah wajib diisi.";
     if (!d.leaderName.trim()) return "Nama ketua wajib diisi.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return "Format email tidak valid.";
     if (!/^(\+62|62|08)\d{7,14}$/.test(d.whatsapp.replace(/[\s\-()]/g, "")))
       return "Nomor WhatsApp tidak valid (gunakan 08... atau 628...).";
+    if (!d.foto_ketua || !d.kartu_pelajar_ketua || !d.bukti_follow_boc_ketua || !d.bukti_follow_yv_ketua)
+      return "Berkas Ketua (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
     if (!d.nama_anggota_1.trim() || !d.whatsapp_anggota_1.trim())
       return "Nama dan WhatsApp Anggota 1 wajib diisi.";
     if (!d.foto_anggota_1 || !d.kartu_pelajar_anggota_1 || !d.bukti_follow_boc_anggota_1 || !d.bukti_follow_yv_anggota_1)
@@ -233,13 +235,59 @@ export default function RegisterPage() {
     if (!d.foto_anggota_2 || !d.kartu_pelajar_anggota_2 || !d.bukti_follow_boc_anggota_2 || !d.bukti_follow_yv_anggota_2)
       return "Berkas Anggota 2 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
 
+    return null;
+  };
+
+  const validatePayment = (): string | null => {
+    if (!selectedPaymentMethod) return "Pilih salah satu metode pembayaran.";
+    if (!d.bukti_bayar) return "Bukti pembayaran wajib diunggah.";
+    return null;
+  };
+
+  const validateTwibbon = (): string | null => {
     if (!d.link_twibbon_ketua.trim()) return "Link Twibbon Ketua wajib diisi.";
     if (!d.link_twibbon_anggota_1.trim()) return "Link Twibbon Anggota 1 wajib diisi.";
     if (!d.link_twibbon_anggota_2.trim()) return "Link Twibbon Anggota 2 wajib diisi.";
-
-    if (!d.bukti_bayar) return "Bukti pembayaran wajib diunggah.";
-
     return null;
+  };
+
+  const validate = (): string | null =>
+    validateParticipantInfo() || validatePayment() || validateTwibbon();
+
+  const showStepError = (message: string) => {
+    setErrorMsg(message);
+    setSubmitStatus("error");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleNextStep = () => {
+    if (Object.values(uploadingFields).some(Boolean)) {
+      showStepError("Mohon tunggu hingga semua gambar selesai diunggah ke Google Drive.");
+      return;
+    }
+
+    const error = currentStep === 1
+      ? validateParticipantInfo()
+      : currentStep === 2
+        ? validatePayment()
+        : validateTwibbon();
+
+    if (error) {
+      showStepError(error);
+      return;
+    }
+
+    setErrorMsg("");
+    setSubmitStatus("idle");
+    setCurrentStep((step) => Math.min(step + 1, 4) as RegistrationStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handlePreviousStep = () => {
+    setErrorMsg("");
+    setSubmitStatus("idle");
+    setCurrentStep((step) => Math.max(step - 1, 1) as RegistrationStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ======================
@@ -247,6 +295,10 @@ export default function RegisterPage() {
   // ======================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (currentStep !== 4) {
+      handleNextStep();
+      return;
+    }
     if (isSubmitting.current) return;
     isSubmitting.current = true;
 
@@ -372,9 +424,38 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          <nav aria-label="Tahapan pendaftaran">
+            <ol className="grid grid-cols-2 gap-2 rounded-2xl border border-[#002D61]/10 bg-white/90 p-2 shadow-sm sm:grid-cols-4">
+              {["Informasi Peserta", "Bayar Pendaftaran", "Twibbon", "Tinjau Ulang"].map((label, index) => {
+                const step = (index + 1) as RegistrationStep;
+                const isActive = currentStep === step;
+                const isComplete = currentStep > step;
+                return (
+                  <li
+                    key={label}
+                    aria-current={isActive ? "step" : undefined}
+                    className={`flex min-h-14 items-center gap-2 rounded-xl px-3 py-2 ${
+                      isActive
+                        ? "bg-[#002D61] text-white"
+                        : isComplete
+                          ? "bg-emerald-50 text-emerald-800"
+                          : "text-[#002D61]/55"
+                    }`}
+                  >
+                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${
+                      isActive ? "bg-white text-[#002D61]" : isComplete ? "bg-emerald-600 text-white" : "bg-[#002D61]/10"
+                    }`}>
+                      {isComplete ? "✓" : step}
+                    </span>
+                    <span className="text-xs font-bold leading-tight">{label}</span>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
 
           {/* === SECTION A: INFORMASI OLIMPIADE === */}
-          <div className={sectionCls}>
+          {currentStep === 1 && <div className={sectionCls}>
             <div className={sectionHeaderCls}>
               <div className="w-9 h-9 rounded-full bg-[#700702] text-white flex items-center justify-center font-bold text-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -388,7 +469,7 @@ export default function RegisterPage() {
                 { label: "Jenis Lomba", value: "Olimpiade" },
                 { label: "Biaya Pendaftaran", value: formatRupiah(BIAYA_PENDAFTARAN) + " / Tim" },
                 { label: "Maks. Anggota", value: "3 Orang" },
-                { label: "Pembayaran", value: "DANA / Bank" },
+                { label: "Pembayaran", value: "QRIS / DANA / Bank" },
               ].map((item) => (
                 <div key={item.label} className="p-4 rounded-2xl bg-[#FFF6E9] border border-[#002D61]/10">
                   <p className="text-[10px] font-bold text-[#002D61]/50 uppercase tracking-wider mb-1">{item.label}</p>
@@ -396,21 +477,23 @@ export default function RegisterPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </div>}
 
           {/* === SECTION B: PEMBAYARAN === */}
-          <div className={sectionCls}>
+          {(currentStep === 2 || currentStep === 3) && <div className={sectionCls}>
             <div className={sectionHeaderCls}>
               <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 2v8m0 0v2m0-2c-1.657 0-3-.895-3-2m3 2c1.657 0 3-.895 3-2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-extrabold text-[#002D61]">Pembayaran DANA / Transfer Bank</h2>
+              <h2 className="text-xl font-extrabold text-[#002D61]">
+                {currentStep === 2 ? "Bayar Pendaftaran" : "Twibbon"}
+              </h2>
             </div>
 
             {/* Petunjuk & Upload */}
-            <div className="space-y-5">
+            {currentStep === 2 && <div className="space-y-5">
               <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200">
                 <h3 className="text-sm sm:text-base font-bold text-emerald-800 mb-2 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -418,63 +501,104 @@ export default function RegisterPage() {
                   </svg>
                   Petunjuk Pembayaran
                 </h3>
-                <div className="mb-4 p-4 sm:p-5 rounded-xl bg-white border border-emerald-200">
-                  <p className="text-[11px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider">Transfer ke DANA</p>
-                  <div className="mt-2 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-                    <p className="text-base sm:text-xl font-black tracking-[0.06em] whitespace-nowrap text-[#002D61]">{DANA_NUMBER}</p>
-                    <button
-                      type="button"
-                      onClick={handleCopyDanaNumber}
-                      className="px-3 py-1.5 rounded-lg bg-[#002D61] text-white text-xs font-bold hover:bg-[#002D61]/90 transition"
-                    >
-                      {copiedDana ? "Tersalin" : "Salin Nomor"}
-                    </button>
-                  </div>
-                  <div className="mt-2 text-[#002D61]/70">
-                    <span className="block text-[11px] uppercase tracking-wider">Nama pemilik</span>
-                    <strong className="block mt-0.5 text-sm leading-snug break-words text-[#002D61]">{DANA_ACCOUNT_NAME}</strong>
-                  </div>
-                  <div className="mt-4 flex flex-col items-center rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-                    <p className="text-xs font-extrabold text-emerald-800">Atau scan QRIS untuk pembayaran</p>
-                    <Image
-                      src="/qr-standar-kompatibel.png"
-                      alt="Kode QR pembayaran"
-                      width={400}
-                      height={400}
-                      className="mt-3 w-full max-w-[260px] rounded-xl border border-emerald-200 bg-white"
-                    />
-                    <div className="mt-3 text-[#002D61]/70">
-                      <span className="block text-[11px] uppercase tracking-wider">Nama penerima QRIS</span>
-                      <strong className="block mt-0.5 text-sm leading-snug text-[#002D61]">LUPATUGAS</strong>
-                    </div>
-                  </div>
+                <p className="text-sm leading-relaxed text-emerald-800">
+                  Pilih salah satu metode untuk melihat QR atau nomor tujuan pembayaran.
+                </p>
+
+                <div className="my-4 grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Pilihan metode pembayaran">
+                  {([
+                    { id: "qris", label: "Scan QR", logo: "/qrislogo.png" },
+                    { id: "dana", label: "Dompet digital", logo: "/dana.png" },
+                    { id: "BRI", label: "Transfer bank", logo: "/bri.png" },
+                    { id: "BNI", label: "Transfer bank", logo: "/bni.png" },
+                  ] as const).map((method) => {
+                    const isSelected = selectedPaymentMethod === method.id;
+                    return (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => setSelectedPaymentMethod(method.id)}
+                        aria-label={`Tampilkan detail pembayaran ${method.id.toUpperCase()}`}
+                        aria-pressed={isSelected}
+                        aria-controls="payment-method-detail"
+                        className={`min-h-24 rounded-xl border bg-white px-3 py-3 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#002D61] ${
+                          isSelected
+                            ? "border-[#002D61] ring-2 ring-[#002D61]/15"
+                            : "border-emerald-200 hover:border-[#002D61]/40"
+                        }`}
+                      >
+                        <span className="flex h-10 items-center justify-center" aria-hidden="true">
+                          <Image
+                            src={method.logo}
+                            alt=""
+                            width={180}
+                            height={72}
+                            className="h-10 w-full object-contain"
+                          />
+                        </span>
+                        <span className="mt-1.5 block text-xs font-bold text-[#002D61]">{method.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {BANK_ACCOUNTS.map((account) => (
-                    <div key={account.bank} className="p-4 rounded-xl bg-white border border-emerald-200">
-                      <p className="text-[11px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider">
-                        Transfer ke Bank {account.bank}
-                      </p>
-                      <div className="mt-2 flex flex-col items-start gap-2">
-                        <p className="text-base sm:text-lg font-black tracking-[0.06em] break-all text-[#002D61]">
-                          {account.number}
-                        </p>
+
+                <div id="payment-method-detail" aria-live="polite">
+                  {!selectedPaymentMethod && (
+                    <div className="rounded-xl border border-dashed border-emerald-300 bg-white/70 p-4 text-center text-sm text-emerald-800">
+                      Belum ada metode yang dipilih.
+                    </div>
+                  )}
+
+                  {selectedPaymentMethod === "qris" && (
+                    <div className="flex flex-col items-center rounded-xl border border-emerald-200 bg-white p-4 text-center sm:p-5">
+                      <p className="text-sm font-extrabold text-[#002D61]">Scan QRIS</p>
+                      <Image
+                        src="/qr-standar-kompatibel.png"
+                        alt="Kode QRIS pembayaran Battle of Champions"
+                        width={400}
+                        height={400}
+                        className="mt-3 h-auto w-full max-w-[280px] border border-emerald-200 bg-white"
+                      />
+                      <span className="mt-3 text-[11px] uppercase tracking-wider text-[#002D61]/60">Nama penerima</span>
+                      <strong className="mt-0.5 text-sm text-[#002D61]">LUPATUGAS</strong>
+                    </div>
+                  )}
+
+                  {selectedPaymentMethod === "dana" && (
+                    <div className="rounded-xl border border-emerald-200 bg-white p-4 sm:p-5">
+                      <p className="text-xs font-bold uppercase tracking-wider text-[#118EEA]">Transfer ke DANA</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        <p className="text-lg font-black tracking-[0.06em] text-[#002D61] sm:text-xl">{DANA_NUMBER}</p>
                         <button
                           type="button"
-                          onClick={() => handleCopyBankNumber(account.bank, account.number)}
-                          className="px-3 py-1.5 rounded-lg bg-[#002D61] text-white text-xs font-bold hover:bg-[#002D61]/90 transition"
+                          onClick={handleCopyDanaNumber}
+                          className="min-h-11 rounded-lg bg-[#002D61] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#002D61]/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#002D61]"
                         >
-                          {copiedBank === account.bank ? "Tersalin" : "Salin Nomor"}
+                          {copiedDana ? "Nomor tersalin" : "Salin nomor"}
                         </button>
                       </div>
-                      <div className="mt-2 text-[#002D61]/70">
-                        <span className="block text-[11px] uppercase tracking-wider">Nama pemilik</span>
-                        <strong className="block mt-0.5 text-sm leading-snug break-words text-[#002D61]">
-                          {account.accountName}
-                        </strong>
-                      </div>
+                      <span className="mt-3 block text-[11px] uppercase tracking-wider text-[#002D61]/60">Nama pemilik</span>
+                      <strong className="mt-0.5 block text-sm text-[#002D61]">{DANA_ACCOUNT_NAME}</strong>
                     </div>
-                  ))}
+                  )}
+
+                  {selectedBankAccount && (
+                      <div className="rounded-xl border border-emerald-200 bg-white p-4 sm:p-5">
+                        <p className="text-xs font-bold uppercase tracking-wider text-emerald-800">Transfer ke Bank {selectedBankAccount.bank}</p>
+                        <div className="mt-3 flex flex-wrap items-center gap-3">
+                          <p className="break-all text-lg font-black tracking-[0.06em] text-[#002D61] sm:text-xl">{selectedBankAccount.number}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyBankNumber(selectedBankAccount.bank, selectedBankAccount.number)}
+                            className="min-h-11 rounded-lg bg-[#002D61] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#002D61]/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#002D61]"
+                          >
+                            {copiedBank === selectedBankAccount.bank ? "Nomor tersalin" : "Salin nomor"}
+                          </button>
+                        </div>
+                        <span className="mt-3 block text-[11px] uppercase tracking-wider text-[#002D61]/60">Nama pemilik</span>
+                        <strong className="mt-0.5 block text-sm text-[#002D61]">{selectedBankAccount.accountName}</strong>
+                      </div>
+                  )}
                 </div>
                 <ol className="space-y-2 text-sm leading-relaxed text-emerald-700">
                   <li className="flex gap-2">
@@ -487,7 +611,7 @@ export default function RegisterPage() {
                   </li>
                   <li className="flex gap-2">
                     <span className="w-4 font-bold flex-shrink-0">3.</span>
-                    <span className="min-w-0">Screenshot bukti pembayaran dari aplikasi DANA/Bank.</span>
+                    <span className="min-w-0">Screenshot bukti pembayaran dari aplikasi yang digunakan.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="w-4 font-bold flex-shrink-0">4.</span>
@@ -515,23 +639,31 @@ export default function RegisterPage() {
                   </p>
                 )}
               </div>
-            </div>
+              <div className="flex justify-between gap-3 pt-2">
+                <button type="button" onClick={handlePreviousStep} className="min-h-11 rounded-xl border border-[#002D61]/20 px-5 py-3 font-bold text-[#002D61] hover:bg-[#002D61]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#002D61]">
+                  Kembali
+                </button>
+                <button type="button" onClick={handleNextStep} className="min-h-11 rounded-xl bg-[#700702] px-6 py-3 font-extrabold text-white hover:bg-[#8a0903] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#700702]">
+                  Selanjutnya
+                </button>
+              </div>
+            </div>}
 
             {/* Twibbon Announcement Banner */}
+            {currentStep === 3 && <>
             <div className="mt-6 p-4 rounded-2xl bg-[#700702]/5 border border-[#700702]/15 text-sm text-[#700702]/90 flex gap-3 items-start">
               <div className="w-5 h-5 rounded-full bg-[#700702] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">!</div>
               <div>
                 <strong className="block text-[#700702] font-extrabold mb-0.5">Penting:</strong>
-                Minimal satu anggota peserta wajib mengunggah Twibbon di Instagram.
+                Seluruh peserta wajib mengunggah Twibbon di Instagram.
                 <br />
-                Silakan download template Twibbon di sini:{" "}
                 <a 
                   href="https://twb.nz/battle-of-champions"
                   target="_blank" 
                   rel="noreferrer" 
                   className="font-extrabold text-[#002D61] underline hover:text-[#700702] transition-colors"
                 >
-                  Template Twibbon BoC
+                  Link Template Twibbon BoC III
                 </a>
               </div>
             </div>
@@ -564,8 +696,42 @@ export default function RegisterPage() {
                 </a>
               </div>
             </div>
-          </div>
 
+            <div className="mt-5 grid gap-5 md:grid-cols-3">
+              {[
+                { name: "link_twibbon_ketua", label: "Link Twibbon Ketua", value: d.link_twibbon_ketua },
+                { name: "link_twibbon_anggota_1", label: "Link Twibbon Anggota 1", value: d.link_twibbon_anggota_1 },
+                { name: "link_twibbon_anggota_2", label: "Link Twibbon Anggota 2", value: d.link_twibbon_anggota_2 },
+              ].map((field) => (
+                <div key={field.name}>
+                  <label htmlFor={field.name} className={labelCls}>{field.label} <Req /></label>
+                  <input
+                    id={field.name}
+                    type="url"
+                    name={field.name}
+                    value={field.value}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    className={inputCls}
+                    placeholder="https://instagram.com/p/..."
+                    required
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex justify-between gap-3">
+              <button type="button" onClick={handlePreviousStep} className="min-h-11 rounded-xl border border-[#002D61]/20 px-5 py-3 font-bold text-[#002D61] hover:bg-[#002D61]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#002D61]">
+                Kembali
+              </button>
+              <button type="button" onClick={handleNextStep} className="min-h-11 rounded-xl bg-[#700702] px-6 py-3 font-extrabold text-white hover:bg-[#8a0903] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#700702]">
+                Selanjutnya
+              </button>
+            </div>
+            </>}
+          </div>}
+
+          {currentStep === 1 && <>
           {/* === SECTION 1: TIM & SEKOLAH === */}
           <div className={sectionCls}>
             <div className={sectionHeaderCls}>
@@ -644,10 +810,6 @@ export default function RegisterPage() {
                   <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_ketua")} disabled={isLoading} className={fileCls} />
                   <UploadBadge value={d.bukti_follow_yv_ketua} isUploading={uploadingFields["bukti_follow_yv_ketua"]} />
                 </div>
-                <div>
-                  <label className={labelCls}>Link Twibbon <Req /></label>
-                  <input type="url" name="link_twibbon_ketua" value={d.link_twibbon_ketua} onChange={handleChange} disabled={isLoading} className={inputCls.replace("p-3.5", "p-2")} placeholder="Link IG" required />
-                </div>
               </div>
             </div>
           </div>
@@ -690,10 +852,6 @@ export default function RegisterPage() {
                     <label className={labelCls}>Bukti Follow Youthverse <Req /><span className="block text-xs font-semibold text-[#700702]">Rekomendasi ukuran file: maksimal 200 KB</span></label>
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_1")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.bukti_follow_yv_anggota_1} isUploading={uploadingFields["bukti_follow_yv_anggota_1"]} />
-                  </div>
-                  <div>
-                    <label className={labelCls}>Link Twibbon <Req /></label>
-                    <input type="url" name="link_twibbon_anggota_1" value={d.link_twibbon_anggota_1} onChange={handleChange} disabled={isLoading} className={inputCls.replace("p-3.5", "p-2")} placeholder="Link IG" required />
                   </div>
                 </div>
               </div>
@@ -738,27 +896,54 @@ export default function RegisterPage() {
                     <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "bukti_follow_yv_anggota_2")} disabled={isLoading} className={fileCls} />
                     <UploadBadge value={d.bukti_follow_yv_anggota_2} isUploading={uploadingFields["bukti_follow_yv_anggota_2"]} />
                   </div>
-                  <div>
-                    <label className={labelCls}>Link Twibbon <Req /></label>
-                    <input type="url" name="link_twibbon_anggota_2" value={d.link_twibbon_anggota_2} onChange={handleChange} disabled={isLoading} className={inputCls.replace("p-3.5", "p-2")} placeholder="Link IG" required />
-                  </div>
                 </div>
               </div>
             </div>
 
+          <div className="flex justify-end">
+            <button type="button" onClick={handleNextStep} className="min-h-11 rounded-xl bg-[#700702] px-6 py-3 font-extrabold text-white hover:bg-[#8a0903] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#700702]">
+              Selanjutnya
+            </button>
+          </div>
+          </>}
+
           {/* === SECTION 5: CATATAN & SUBMIT === */}
-          <div className={sectionCls}>
+          {currentStep === 4 && <div className={sectionCls}>
             <div className={sectionHeaderCls}>
               <div className="w-9 h-9 rounded-full bg-[#002D61] text-white flex items-center justify-center font-bold">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-extrabold text-[#002D61]">Catatan & Kirim</h2>
+              <h2 className="text-xl font-extrabold text-[#002D61]">Tinjau Ulang</h2>
             </div>
 
+            <div className="mb-6 grid gap-4 sm:grid-cols-2">
+              {[
+                { label: "Nama Tim", value: d.nama_tim },
+                { label: "Asal Sekolah", value: d.institution },
+                { label: "Ketua", value: `${d.leaderName} (${d.whatsapp})` },
+                { label: "Anggota 1", value: `${d.nama_anggota_1} (${d.whatsapp_anggota_1})` },
+                { label: "Anggota 2", value: `${d.nama_anggota_2} (${d.whatsapp_anggota_2})` },
+                { label: "Metode Pembayaran", value: selectedPaymentMethod?.toUpperCase() || "Belum dipilih" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl border border-[#002D61]/10 bg-[#FFF6E9] p-4">
+                  <p className="text-xs font-bold text-[#002D61]/55">{item.label}</p>
+                  <p className="mt-1 break-words text-sm font-extrabold text-[#002D61]">{item.value}</p>
+                </div>
+              ))}
+            </div>
 
-
+            <div className="mb-6 rounded-xl border border-[#002D61]/10 p-4">
+              <p className="mb-3 text-xs font-bold text-[#002D61]/55">Link Twibbon Instagram</p>
+              <div className="space-y-2 text-sm">
+                {[d.link_twibbon_ketua, d.link_twibbon_anggota_1, d.link_twibbon_anggota_2].map((link, index) => (
+                  <a key={`${index}-${link}`} href={link} target="_blank" rel="noreferrer" className="block break-all font-semibold text-[#700702] underline">
+                    {index === 0 ? "Ketua" : `Anggota ${index}`}: {link}
+                  </a>
+                ))}
+              </div>
+            </div>
             <div className="mb-6">
               <label className={labelCls}>Catatan Tambahan (Opsional)</label>
               <textarea
@@ -780,7 +965,9 @@ export default function RegisterPage() {
                   { label: "Data tim & sekolah sudah diisi", ok: !!(d.nama_tim && d.institution) },
                   { label: "Data ketua sudah lengkap", ok: !!(d.leaderName && d.whatsapp && d.email) },
                   { label: "Berkas ketua sudah diunggah", ok: !!(d.foto_ketua && d.kartu_pelajar_ketua && d.bukti_follow_boc_ketua && d.bukti_follow_yv_ketua) },
+                  { label: "Data dan berkas kedua anggota sudah lengkap", ok: !!(d.nama_anggota_1 && d.whatsapp_anggota_1 && d.foto_anggota_1 && d.kartu_pelajar_anggota_1 && d.bukti_follow_boc_anggota_1 && d.bukti_follow_yv_anggota_1 && d.nama_anggota_2 && d.whatsapp_anggota_2 && d.foto_anggota_2 && d.kartu_pelajar_anggota_2 && d.bukti_follow_boc_anggota_2 && d.bukti_follow_yv_anggota_2) },
                   { label: "Bukti pembayaran sudah diunggah", ok: !!d.bukti_bayar },
+                  { label: "Link Twibbon seluruh peserta sudah diisi", ok: !!(d.link_twibbon_ketua && d.link_twibbon_anggota_1 && d.link_twibbon_anggota_2) },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2">
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${item.ok ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-400"}`}>
@@ -792,11 +979,15 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-4 bg-[#700702] hover:bg-[#8a0903] text-white font-extrabold text-lg rounded-xl shadow-[0_4px_25px_rgba(112,7,2,0.25)] hover:shadow-[0_6px_35px_rgba(112,7,2,0.4)] transition-all disabled:opacity-60 flex items-center justify-center gap-3"
-            >
+            <div className="flex flex-col-reverse gap-3 sm:flex-row">
+              <button type="button" onClick={handlePreviousStep} disabled={isLoading} className="min-h-14 rounded-xl border border-[#002D61]/20 px-6 py-3 font-bold text-[#002D61] hover:bg-[#002D61]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#002D61] disabled:opacity-60">
+                Kembali
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-[#700702] px-6 py-3 text-lg font-extrabold text-white shadow-[0_4px_25px_rgba(112,7,2,0.25)] transition-all hover:bg-[#8a0903] hover:shadow-[0_6px_35px_rgba(112,7,2,0.4)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#700702] disabled:opacity-60"
+              >
               {isLoading ? (
                 <>
                   <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -813,8 +1004,9 @@ export default function RegisterPage() {
                   Kirim Pendaftaran
                 </>
               )}
-            </button>
-          </div>
+              </button>
+            </div>
+          </div>}
         </form>
       </main>
     </div>
