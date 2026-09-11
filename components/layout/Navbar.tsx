@@ -67,15 +67,26 @@ export default function Navbar() {
     if (pathname !== "/") return;
 
     const sections = ["home", "about", "game-concept", "timeline", "faq", "contact"];
-    const activationOffset = 80;
     let animationFrame: number | null = null;
 
     const updateActiveSection = () => {
-      let current = "home";
+      const viewportTop = 64;
+      const viewportBottom = window.innerHeight;
+      let current = "";
+      let largestVisibleArea = 0;
 
       for (const id of sections) {
         const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= activationOffset) {
+        if (!el) continue;
+
+        const rect = el.getBoundingClientRect();
+        const visibleArea = Math.max(
+          0,
+          Math.min(rect.bottom, viewportBottom) - Math.max(rect.top, viewportTop)
+        );
+
+        if (visibleArea > largestVisibleArea) {
+          largestVisibleArea = visibleArea;
           current = id;
         }
       }
@@ -207,6 +218,8 @@ export default function Navbar() {
           onClick={() => setMobileOpen(!mobileOpen)}
           className="md:hidden p-2 text-[#002D61] hover:bg-[#002D61]/10 rounded-lg transition-colors"
           aria-label="Toggle menu"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-navigation"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {mobileOpen ? (
@@ -220,7 +233,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-[#002D61]/10 bg-white/95 backdrop-blur-xl shadow-2xl">
+        <div id="mobile-navigation" className="md:hidden border-t border-[#002D61]/10 bg-white/95 backdrop-blur-xl shadow-2xl">
           <div className="px-4 py-3 space-y-1">
             {isAuthenticated && user && (
               <div className="flex items-center gap-3 px-2 py-3 border-b border-[#002D61]/10 mb-2">

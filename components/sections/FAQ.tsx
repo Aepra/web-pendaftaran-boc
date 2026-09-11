@@ -13,7 +13,7 @@ const faqs = [
   },
   {
     q: "Apakah pendaftaran dipungut biaya?",
-    a: "Ya, terdapat biaya pendaftaran per tim. Rincian biaya akan diumumkan saat pembukaan pendaftaran pada 1 Agustus 2026.",
+    a: "Ya. Biaya pendaftaran sebesar Rp100.000 per tim.",
   },
   {
     q: "Bagaimana alur pendaftaran?",

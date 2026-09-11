@@ -10,7 +10,7 @@ export default function About() {
 
           <p className="text-base sm:text-lg text-[#002D61]/70 leading-relaxed mb-6">
             Battle of Champions adalah kompetisi akademik tahunan untuk siswa
-            SMA se-Sulawesi Selatan yang menggabungkan matematika, logika,
+            SMA/SMK/MA sederajat se-Sulawesi Selatan yang menggabungkan matematika, logika,
             pengetahuan umum, dan pemecahan masalah dalam atmosfer permainan
             investigasi yang seru dan menantang.
           </p>
@@ -95,7 +95,7 @@ export default function About() {
               Siswa SMA/SMK/MA Sederajat se-Sulawesi Selatan
             </p>
             <p className="text-sm text-[#002D61]/60 mt-2">
-              Tim (maks. 3 anggota termasuk ketua)
+              Setiap tim terdiri dari 3 anggota termasuk ketua
             </p>
           </div>
 

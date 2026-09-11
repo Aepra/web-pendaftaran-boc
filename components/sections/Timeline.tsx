@@ -4,7 +4,7 @@ export default function Timeline() {
       date: "1 Agustus – 30 September 2026",
       title: "Case Open",
       subtitle: "Pembukaan Pendaftaran",
-      desc: "Pendaftaran dibuka untuk seluruh siswa SMA/sederajat se-Sulawesi Selatan. Daftarkan tim Anda melalui website resmi.",
+      desc: "Pendaftaran dibuka untuk seluruh siswa SMA/SMK/MA sederajat se-Sulawesi Selatan. Daftarkan tim Anda melalui website resmi.",
       color: "red",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

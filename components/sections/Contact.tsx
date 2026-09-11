@@ -20,38 +20,31 @@ export default function Contact() {
               </svg>
             </div>
             <h3 className="text-lg font-bold text-[#002D61] mb-2">WhatsApp Support</h3>
-            <p className="text-xs text-[#002D61]/50 mb-1">Senin – Sabtu, 08.00 – 20.00 WITA</p>
-            <p className="text-xs text-green-600/80 mb-4">Response: &lt; 30 menit</p>
-            <div className="flex flex-col gap-3 items-center">
+            <div className="mt-4 flex flex-col gap-3 items-center">
               <a
-                href="https://wa.me/6285299489932"
+                href="https://wa.me/6289607456683"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-[#700702] font-semibold hover:text-[#8a0903] text-sm transition-colors"
               >
-                Kevin Ardhana: 0852-9948-9932
+                <span className="flex flex-col items-center">
+                  <span>Nanda Dhela Azzahra</span>
+                  <span>0896-0745-6683</span>
+                </span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </a>
               <a
-                href="https://wa.me/6285796508390"
+                href="https://wa.me/6282347302682"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-[#700702] font-semibold hover:text-[#8a0903] text-sm transition-colors"
               >
-                Abel Eka Putra: 0857-9650-8390
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-              <a
-                href="https://wa.me/6285966407041"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 text-[#700702] font-semibold hover:text-[#8a0903] text-sm transition-colors"
-              >
-                Vira Anggraeni: 0859-6640-7041
+                <span className="flex flex-col items-center">
+                  <span>Fatima Sri Anggraini</span>
+                  <span>0823-4730-2682</span>
+                </span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
@@ -67,11 +60,9 @@ export default function Contact() {
               </svg>
             </div>
             <h3 className="text-lg font-bold text-[#002D61] mb-2">Email Support</h3>
-            <p className="text-xs text-[#002D61]/50 mb-1">24/7</p>
-            <p className="text-xs text-[#002D61]/60 mb-4">Response: &lt; 24 jam</p>
             <a
               href="mailto:battleofchampions17@gmail.com"
-              className="inline-flex items-center gap-2 text-[#700702] font-semibold hover:text-[#8a0903] text-sm transition-colors"
+              className="mt-4 inline-flex items-center gap-2 text-[#700702] font-semibold hover:text-[#8a0903] text-sm transition-colors"
             >
               battleofchampions17@gmail.com
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

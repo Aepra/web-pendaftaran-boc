@@ -98,20 +98,35 @@ export default function Footer() {
             </p>
             <div className="space-y-2 text-xs font-bold text-[#002D61]">
               <a
-                href="https://wa.me/6281234567890"
+                href="https://wa.me/6289607456683"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 text-[#002D61]/80 hover:text-emerald-700 transition-colors"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                WA: +62 812-3456-7890
+                <span className="flex flex-col">
+                  <span>Nanda Dhela Azzahra</span>
+                  <span>0896-0745-6683</span>
+                </span>
               </a>
               <a
-                href="mailto:panitia@boc2026.id"
+                href="https://wa.me/6282347302682"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-[#002D61]/80 hover:text-emerald-700 transition-colors"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="flex flex-col">
+                  <span>Fatima Sri Anggraini</span>
+                  <span>0823-4730-2682</span>
+                </span>
+              </a>
+              <a
+                href="mailto:battleofchampions17@gmail.com"
                 className="flex items-center gap-2 text-[#002D61]/80 hover:text-[#700702] transition-colors"
               >
                 <span className="w-2 h-2 rounded-full bg-[#700702]" />
-                Email: panitia@boc2026.id
+                Email: battleofchampions17@gmail.com
               </a>
             </div>
           </div>

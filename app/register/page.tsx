@@ -556,14 +556,11 @@ export default function RegisterPage() {
               <strong className="block text-[#002D61] font-extrabold mb-2">Contact Person:</strong>
               <p className="mb-2">Jika membutuhkan bantuan selama proses pendaftaran, silakan hubungi:</p>
               <div className="flex flex-col gap-1.5">
-                <a href="https://wa.me/6285299489932" target="_blank" rel="noreferrer" className="font-semibold text-[#700702] hover:underline">
-                  Kevin Ardhana — 0852-9948-9932
+                <a href="https://wa.me/6289607456683" target="_blank" rel="noreferrer" className="font-semibold text-[#700702] hover:underline">
+                  Nanda Dhela Azzahra: 0896-0745-6683
                 </a>
-                <a href="https://wa.me/6285796508390" target="_blank" rel="noreferrer" className="font-semibold text-[#700702] hover:underline">
-                  Abel Eka Putra — 0857-9650-8390
-                </a>
-                <a href="https://wa.me/6285966407041" target="_blank" rel="noreferrer" className="font-semibold text-[#700702] hover:underline">
-                  Vira Anggraeni — 0859-6640-7041
+                <a href="https://wa.me/6282347302682" target="_blank" rel="noreferrer" className="font-semibold text-[#700702] hover:underline">
+                  Fatima Sri Anggraini: 0823-4730-2682
                 </a>
               </div>
             </div>
