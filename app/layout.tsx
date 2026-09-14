@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Battle Champions III",
+  title: "Battle of Champions III",
   description: "Kompetisi akademik untuk siswa SMA/SMK/MA Sederajat se-Sulawesi Selatan. Matematika, logika, pemecahan masalah, dan kerja sama tim dalam atmosfer investigasi yang seru.",
   icons: {
     icon: "/logo-hitam-boc.jpg",
