@@ -6,10 +6,8 @@ import { auth } from "@/auth";
 
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "";
 
-// Timeout configs
-const SOCKET_TIMEOUT_MS = 90_000; // 90 detik (cover upload gambar ke Drive)
-const MAX_RETRIES       = 3;
 const SUPER_ADMIN_EMAIL = (process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL || "abelekaputra05@gmail.com").trim().toLowerCase();
+const ADMIN_CACHE_TTL_MS = 30_000;
 const ADMIN_ACTIONS = new Set([
   "admin_get_all_registrations",
   "admin_get_registration_detail",
@@ -18,13 +16,39 @@ const ADMIN_ACTIONS = new Set([
   "admin_add_admin",
   "admin_remove_admin",
 ]);
+const READ_ACTIONS = new Set([
+  "get_user",
+  "get_registrations",
+  "get_registration_detail",
+  "admin_get_all_registrations",
+  "admin_get_registration_detail",
+  "admin_get_admins",
+]);
+
+type RequestPolicy = {
+  timeoutMs: number;
+  maxRetries: number;
+};
+
+let adminCache: { emails: string[]; expiresAt: number } | null = null;
+let adminCacheRequest: Promise<string[]> | null = null;
+
+function getRequestPolicy(body: unknown): RequestPolicy {
+  const action = body && typeof body === "object" && "action" in body
+    ? String(body.action)
+    : "";
+
+  if (action === "upload_file") return { timeoutMs: 90_000, maxRetries: 2 };
+  if (READ_ACTIONS.has(action)) return { timeoutMs: 20_000, maxRetries: 1 };
+  return { timeoutMs: 30_000, maxRetries: 1 };
+}
 
 /**
  * POST ke URL menggunakan node:https, ikuti redirect secara manual.
  * Ini menghindari bug ECONNRESET & ConnectTimeout dari undici/native fetch
  * saat payload besar dikirim ke Google Apps Script.
  */
-function nodePost(targetUrl: string, payload: string, redirectCount = 0): Promise<string> {
+function nodePost(targetUrl: string, payload: string, timeoutMs: number, redirectCount = 0): Promise<string> {
   return new Promise((resolve, reject) => {
     if (redirectCount > 10) {
       reject(new Error("Too many redirects"));
@@ -53,7 +77,7 @@ function nodePost(targetUrl: string, payload: string, redirectCount = 0): Promis
       // Ikuti redirect (301/302/303/307/308)
       if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         res.resume(); // buang body
-        nodePost(res.headers.location, payload, redirectCount + 1).then(resolve).catch(reject);
+        nodePost(res.headers.location, payload, timeoutMs, redirectCount + 1).then(resolve).catch(reject);
         return;
       }
 
@@ -65,8 +89,8 @@ function nodePost(targetUrl: string, payload: string, redirectCount = 0): Promis
     });
 
     // Socket timeout mencakup connect + TLS + read
-    req.setTimeout(SOCKET_TIMEOUT_MS, () => {
-      req.destroy(new Error("Socket timeout after " + SOCKET_TIMEOUT_MS + "ms"));
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error("Socket timeout after " + timeoutMs + "ms"));
     });
 
     req.on("error", reject);
@@ -76,9 +100,13 @@ function nodePost(targetUrl: string, payload: string, redirectCount = 0): Promis
   });
 }
 
-async function callGAS(body: unknown, attempt = 0): Promise<string> {
+async function callGAS(
+  body: unknown,
+  attempt = 0,
+  policy = getRequestPolicy(body)
+): Promise<string> {
   try {
-    return await nodePost(APPS_SCRIPT_URL, JSON.stringify(body));
+    return await nodePost(APPS_SCRIPT_URL, JSON.stringify(body), policy.timeoutMs);
   } catch (err: unknown) {
     const msg  = err instanceof Error ? err.message : String(err);
     const code = (err as NodeJS.ErrnoException).code ?? "";
@@ -91,11 +119,11 @@ async function callGAS(body: unknown, attempt = 0): Promise<string> {
       msg.includes("timeout") ||
       msg.includes("ECONNRESET");
 
-    if (isRetryable && attempt < MAX_RETRIES) {
-      const delay = (attempt + 1) * 3000;
-      console.warn(`[API] Retry ${attempt + 1}/${MAX_RETRIES} setelah ${delay}ms... (${code || msg.slice(0, 50)})`);
+    if (isRetryable && attempt < policy.maxRetries) {
+      const delay = (attempt + 1) * 1500;
+      console.warn(`[API] Retry ${attempt + 1}/${policy.maxRetries} setelah ${delay}ms... (${code || msg.slice(0, 50)})`);
       await new Promise((r) => setTimeout(r, delay));
-      return callGAS(body, attempt + 1);
+      return callGAS(body, attempt + 1, policy);
     }
 
     throw err;
@@ -111,19 +139,35 @@ function parseGasResponse(text: string): Record<string, unknown> | null {
 }
 
 async function getAuthorizedAdminEmails(): Promise<string[]> {
-  const response = parseGasResponse(await callGAS({ action: "admin_get_admins" }));
-  if (response?.status !== "success" || !Array.isArray(response.data)) {
-    throw new Error("Daftar admin tidak dapat diverifikasi.");
-  }
-  const data = response.data;
-  const emails = data
-    .map((item) => {
-      if (!item || typeof item !== "object" || !("email" in item)) return "";
-      return String(item.email).trim().toLowerCase();
-    })
-    .filter(Boolean);
+  if (adminCache && adminCache.expiresAt > Date.now()) return adminCache.emails;
+  if (adminCacheRequest) return adminCacheRequest;
 
-  return Array.from(new Set([SUPER_ADMIN_EMAIL, ...emails]));
+  adminCacheRequest = (async () => {
+    const response = parseGasResponse(await callGAS({ action: "admin_get_admins" }));
+    if (response?.status !== "success" || !Array.isArray(response.data)) {
+      throw new Error("Daftar admin tidak dapat diverifikasi.");
+    }
+
+    const emails = response.data
+      .map((item) => {
+        if (!item || typeof item !== "object" || !("email" in item)) return "";
+        return String(item.email).trim().toLowerCase();
+      })
+      .filter(Boolean);
+    const authorizedEmails = Array.from(new Set([SUPER_ADMIN_EMAIL, ...emails]));
+    adminCache = { emails: authorizedEmails, expiresAt: Date.now() + ADMIN_CACHE_TTL_MS };
+    return authorizedEmails;
+  })();
+
+  try {
+    return await adminCacheRequest;
+  } finally {
+    adminCacheRequest = null;
+  }
+}
+
+function invalidateAdminCache() {
+  adminCache = null;
 }
 
 export async function POST(request: Request) {
@@ -160,10 +204,8 @@ export async function POST(request: Request) {
 
     const text = await callGAS(body);
 
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
+    const data = parseGasResponse(text);
+    if (!data) {
       console.error("[API] JSON parse error. Raw response sample:", text.slice(0, 500));
       let cleanMessage = "Server Google merespons dengan format yang tidak valid.";
       
@@ -183,6 +225,13 @@ export async function POST(request: Request) {
         { status: "error", message: `Server Google Script Error: ${cleanMessage}` },
         { status: 502 }
       );
+    }
+
+    if (
+      data.status === "success" &&
+      (action === "admin_add_admin" || action === "admin_remove_admin")
+    ) {
+      invalidateAdminCache();
     }
 
     return NextResponse.json(data, { status: 200 });
