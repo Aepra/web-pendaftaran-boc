@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
-import { getAdmins } from "@/lib/api/boc-api";
 
 const NAV_LINKS_GUEST = [
   { href: "/", label: "Home" },
@@ -32,35 +31,10 @@ const NAV_LINKS_ADMIN = [
 ];
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, status, roleStatus, isAuthenticated, isAdmin, logout } = useAuth();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dynamicAdminCheck, setDynamicAdminCheck] = useState<{ email: string; isAdmin: boolean } | null>(null);
   const [activeSection, setActiveSection] = useState<string>("home");
-
-  const superAdmin = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "abelekaputra05@gmail.com";
-  const isSuperAdmin = isAuthenticated && Boolean(user?.email && user.email === superAdmin);
-
-  useEffect(() => {
-    if (!isAuthenticated || !user?.email || isSuperAdmin) return;
-    let active = true;
-    const email = user.email;
-
-    getAdmins()
-      .then((admins) => {
-        if (active) {
-          setDynamicAdminCheck({ email, isAdmin: admins.includes(email) });
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setDynamicAdminCheck({ email, isAdmin: false });
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [isAuthenticated, user?.email, isSuperAdmin]);
 
   // Scroll Spy for Home Page Sections
   useEffect(() => {
@@ -112,14 +86,12 @@ export default function Navbar() {
     };
   }, [pathname]);
 
-  const isDynamicAdmin = Boolean(
-    isAuthenticated && user?.email && dynamicAdminCheck?.email === user.email && dynamicAdminCheck.isAdmin
-  );
-  const isAdmin = isSuperAdmin || isDynamicAdmin;
-
-  const links = isAuthenticated 
-    ? (isAdmin ? NAV_LINKS_ADMIN : NAV_LINKS_AUTH) 
-    : NAV_LINKS_GUEST;
+  const authReady = status !== "loading" && (!isAuthenticated || roleStatus !== "loading");
+  const links = !authReady
+    ? []
+    : isAuthenticated
+      ? (isAdmin ? NAV_LINKS_ADMIN : NAV_LINKS_AUTH)
+      : NAV_LINKS_GUEST;
 
   const isLinkActive = (href: string) => {
     if (pathname !== "/") {
@@ -156,6 +128,7 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-1">
+          {!authReady && <div className="h-9 w-48 rounded-lg bg-[#002D61]/5 animate-pulse" aria-label="Memuat navigasi" />}
           {links.map((link) => {
             const active = isLinkActive(link.href);
             const isCta = link.href === "/login" || link.href === "/register";

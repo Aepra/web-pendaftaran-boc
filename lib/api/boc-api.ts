@@ -39,7 +39,6 @@ async function callApi<T>(payload: Record<string, unknown>): Promise<T> {
   const data: T = await res.json();
   return data;
 }
-
 // ======================
 // User API
 // ======================
@@ -205,8 +204,7 @@ export async function getAllRegistrations(): Promise<RegistrationHistoryItem[]> 
   });
 
   if (response.status !== "success" || !Array.isArray(response.data)) {
-    console.warn("[getAllRegistrations] Fallback ke mock data (dev mode)");
-    return getMockRegistrations();
+    throw new Error(response.status === "error" ? response.message : "Data pendaftaran gagal dimuat.");
   }
 
   return response.data;
@@ -285,46 +283,4 @@ export async function removeAdmin(email: string): Promise<{ success: boolean; me
   } catch (err) {
     return { success: false, message: "Gagal menghubungi server." };
   }
-}
-
-// ======================
-// Mock Data (Dev Fallback — untuk admin getAllRegistrations saja)
-// ======================
-
-function getMockRegistrations(): RegistrationHistoryItem[] {
-  return [
-    {
-      registration_id: "REG-2026-001",
-      nama_tim: "Tim Investigator Alpha",
-      nama_ketua: "Budi Santoso",
-      instansi: "SMAN 1 Makassar",
-      jumlah_anggota: 3,
-      participant_status: "MENUNGGU",
-      admin_message: "",
-      created_at: "2026-08-01T10:00:00",
-      updated_at: "2026-08-01T10:00:00",
-    },
-    {
-      registration_id: "REG-2026-002",
-      nama_tim: "Sherlock Squad",
-      nama_ketua: "Andi Rahman",
-      instansi: "SMAN 5 Makassar",
-      jumlah_anggota: 2,
-      participant_status: "DISETUJUI",
-      admin_message: "Selamat, pendaftaran tim Anda telah disetujui.",
-      created_at: "2026-08-02T09:00:00",
-      updated_at: "2026-08-03T14:00:00",
-    },
-    {
-      registration_id: "REG-2026-003",
-      nama_tim: "Detective Agency",
-      nama_ketua: "Sari Dewi",
-      instansi: "SMAN 3 Makassar",
-      jumlah_anggota: 1,
-      participant_status: "DITOLAK",
-      admin_message: "Bukti pembayaran kurang jelas. Harap upload ulang.",
-      created_at: "2026-08-02T11:00:00",
-      updated_at: "2026-08-03T15:00:00",
-    },
-  ];
 }

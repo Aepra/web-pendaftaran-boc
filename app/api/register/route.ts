@@ -2,12 +2,22 @@ import { NextResponse } from "next/server";
 import https from "node:https";
 import http from "node:http";
 import { URL } from "node:url";
+import { auth } from "@/auth";
 
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "";
 
 // Timeout configs
 const SOCKET_TIMEOUT_MS = 90_000; // 90 detik (cover upload gambar ke Drive)
 const MAX_RETRIES       = 3;
+const SUPER_ADMIN_EMAIL = (process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL || "abelekaputra05@gmail.com").trim().toLowerCase();
+const ADMIN_ACTIONS = new Set([
+  "admin_get_all_registrations",
+  "admin_get_registration_detail",
+  "admin_update_status",
+  "admin_get_admins",
+  "admin_add_admin",
+  "admin_remove_admin",
+]);
 
 /**
  * POST ke URL menggunakan node:https, ikuti redirect secara manual.
@@ -92,18 +102,63 @@ async function callGAS(body: unknown, attempt = 0): Promise<string> {
   }
 }
 
+function parseGasResponse(text: string): Record<string, unknown> | null {
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+async function getAuthorizedAdminEmails(): Promise<string[]> {
+  const response = parseGasResponse(await callGAS({ action: "admin_get_admins" }));
+  if (response?.status !== "success" || !Array.isArray(response.data)) {
+    throw new Error("Daftar admin tidak dapat diverifikasi.");
+  }
+  const data = response.data;
+  const emails = data
+    .map((item) => {
+      if (!item || typeof item !== "object" || !("email" in item)) return "";
+      return String(item.email).trim().toLowerCase();
+    })
+    .filter(Boolean);
+
+  return Array.from(new Set([SUPER_ADMIN_EMAIL, ...emails]));
+}
+
 export async function POST(request: Request) {
   try {
     const body   = await request.json();
     const action = body.action;
     console.log("[API] Action:", action);
 
-    const text = await callGAS(body);
+    if (typeof action !== "string") {
+      return NextResponse.json({ status: "error", message: "Action tidak valid." }, { status: 400 });
+    }
 
-    console.log("=========================================");
-    console.log("[API] RAW Apps Script Response:");
-    console.log(text);
-    console.log("=========================================");
+    if (ADMIN_ACTIONS.has(action)) {
+      const session = await auth();
+      const email = session?.user?.email?.trim().toLowerCase();
+      if (!email) {
+        return NextResponse.json({ status: "error", message: "Silakan login terlebih dahulu." }, { status: 401 });
+      }
+
+      const adminEmails = await getAuthorizedAdminEmails();
+      const isAdmin = adminEmails.includes(email);
+
+      if (action === "admin_get_admins") {
+        return NextResponse.json(
+          { status: "success", data: isAdmin ? adminEmails.map((adminEmail) => ({ email: adminEmail })) : [] },
+          { status: 200 }
+        );
+      }
+
+      if (!isAdmin) {
+        return NextResponse.json({ status: "error", message: "Akses admin diperlukan." }, { status: 403 });
+      }
+    }
+
+    const text = await callGAS(body);
 
     let data;
     try {
@@ -112,7 +167,7 @@ export async function POST(request: Request) {
       console.error("[API] JSON parse error. Raw response sample:", text.slice(0, 500));
       let cleanMessage = "Server Google merespons dengan format yang tidak valid.";
       
-      const summaryMatch = text.match(/<div id="summary">(.*?)<\/div>/s);
+      const summaryMatch = text.match(/<div id="summary">([\s\S]*?)<\/div>/);
       const titleMatch   = text.match(/<title>(.*?)<\/title>/i);
       const exceptionMatch = text.match(/Exception:\s*([^\n<]+)/i);
 

@@ -639,7 +639,7 @@ function RegistrationCard({
 // Main Page
 // ======================
 export default function ProfilePage() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { status: authStatus, isAuthenticated, user, logout } = useAuth();
   const { data: latestRegistration } = useRegistration();
   const router = useRouter();
 
@@ -649,8 +649,8 @@ export default function ProfilePage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (!isAuthenticated) router.replace("/login");
-  }, [isAuthenticated, router]);
+    if (authStatus === "unauthenticated") router.replace("/login");
+  }, [authStatus, router]);
 
   const fetchData = useCallback(async () => {
     if (!isAuthenticated || !user?.email) return;
@@ -667,9 +667,12 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user?.email]);
+  }, [isAuthenticated, user]);
 
-  useEffect(() => { fetchData(); }, [fetchData, refreshKey]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => void fetchData(), 0);
+    return () => window.clearTimeout(timer);
+  }, [fetchData, refreshKey]);
 
   if (!isAuthenticated || !user) return null;
 

@@ -158,7 +158,7 @@ function ConfirmDialog({
           {adminMessage && (
             <>
               {" "}Pesan yang akan dikirim ke peserta:
-              <span className="block mt-2 p-3 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-gray-700 italic">"{adminMessage}"</span>
+              <span className="block mt-2 p-3 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-gray-700 italic">&ldquo;{adminMessage}&rdquo;</span>
             </>
           )}
         </p>
@@ -306,12 +306,15 @@ function AdminDetailPanel({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    setDetail(null);
-    adminGetRegistrationDetail(regId).then((d) => {
-      setDetail(d);
-      setLoading(false);
-    });
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      setDetail(null);
+      adminGetRegistrationDetail(regId)
+        .then(setDetail)
+        .catch(() => setDetail(null))
+        .finally(() => setLoading(false));
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [regId]);
 
   if (loading) return (
@@ -439,7 +442,7 @@ function AdminDetailPanel({
       {detail.admin_message && (
         <div className="p-3 rounded-xl bg-[#002D61]/5 border border-[#002D61]/10">
           <p className="text-[10px] text-[#002D61]/50 uppercase font-bold tracking-wider mb-1">Pesan Admin Sebelumnya</p>
-          <p className="text-xs text-[#002D61]/80 italic">"{detail.admin_message}"</p>
+          <p className="text-xs text-[#002D61]/80 italic">&ldquo;{detail.admin_message}&rdquo;</p>
         </div>
       )}
 
@@ -468,12 +471,19 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
 
   const loadAdmins = useCallback(async () => {
     setLoading(true);
-    const data = await getAdmins();
-    setAdmins(data);
-    setLoading(false);
+    try {
+      setAdmins(await getAdmins());
+    } catch {
+      setMsg("Daftar admin gagal dimuat. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { loadAdmins(); }, [loadAdmins]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => void loadAdmins(), 0);
+    return () => window.clearTimeout(timer);
+  }, [loadAdmins]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -554,7 +564,7 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
         {loading && admins.length === 0 ? (
           <p className="text-sm text-gray-400 py-4 text-center">Memuat data admin...</p>
         ) : (
-          admins.map((email) => (
+          admins.filter((email) => email.trim().toLowerCase() !== ADMIN_EMAIL.trim().toLowerCase()).map((email) => (
             <div key={email} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
               <div className="flex items-center gap-3 w-full">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-[#002D61]/10 flex items-center justify-center text-[#002D61] font-bold text-xs">
@@ -587,57 +597,40 @@ function AdminManagementPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
 // Main Admin Dashboard
 // ======================
 export default function AdminDashboard() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { status, roleStatus, isAuthenticated, isAdmin, retryRoleCheck, user, logout } = useAuth();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<"pendaftaran" | "manajemen">("pendaftaran");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-
   const [registrations, setRegistrations] = useState<RegistrationHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataError, setDataError] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<"ALL" | ParticipantStatus>("ALL");
   const [search, setSearch] = useState("");
   const [toastMsg, setToastMsg] = useState("");
 
-  // Auth guard with multi-admin support
   useEffect(() => {
-    if (!isAuthenticated) { 
-      router.replace("/login"); 
-      return; 
-    }
-    if (!user) return;
-    
-    // Immediately allow Super Admin
-    if (user.email === ADMIN_EMAIL) {
-      setIsAdmin(true);
-      setCheckingAuth(false);
-      return;
-    }
-
-    // Check remote admin list
-    getAdmins().then(admins => {
-      if (user.email && admins.includes(user.email)) {
-        setIsAdmin(true);
-      } else {
-        router.replace("/");
-      }
-      setCheckingAuth(false);
-    });
-  }, [isAuthenticated, user, router]);
+    if (status === "unauthenticated") router.replace("/login");
+    if (status === "authenticated" && roleStatus === "ready" && !isAdmin) router.replace("/");
+  }, [status, roleStatus, isAdmin, router]);
 
   const loadData = useCallback(async () => {
     if (!isAdmin) return;
     setLoading(true);
-    const data = await getAllRegistrations();
-    setRegistrations(data);
-    setLoading(false);
+    setDataError("");
+    try {
+      setRegistrations(await getAllRegistrations());
+    } catch {
+      setDataError("Data peserta gagal dimuat. Periksa koneksi lalu coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   }, [isAdmin]);
 
   useEffect(() => { 
     if (isAdmin && activeTab === "pendaftaran") {
-      loadData(); 
+      const timer = window.setTimeout(() => void loadData(), 0);
+      return () => window.clearTimeout(timer);
     }
   }, [isAdmin, activeTab, loadData]);
 
@@ -650,7 +643,7 @@ export default function AdminDashboard() {
     showToast(`✅ Status berhasil diubah ke ${status === "MENUNGGU" ? "Menunggu" : status === "DISETUJUI" ? "Disetujui" : "Ditolak"}.`);
   };
 
-  if (checkingAuth) {
+  if (status === "loading" || (isAuthenticated && roleStatus === "loading")) {
     return (
       <div className="min-h-screen bg-[#FFF6E9] flex flex-col items-center justify-center text-[#002D61]">
         <svg className="animate-spin h-10 w-10 mb-4 opacity-50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -658,6 +651,17 @@ export default function AdminDashboard() {
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
         <p className="font-semibold text-lg animate-pulse">Memverifikasi akses Admin...</p>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && roleStatus === "error") {
+    return (
+      <div className="min-h-screen bg-[#FFF6E9] flex flex-col items-center justify-center gap-4 px-4 text-center text-[#002D61]">
+        <p className="font-bold">Akses admin gagal diperiksa.</p>
+        <button type="button" onClick={retryRoleCheck} className="rounded-xl bg-[#002D61] px-5 py-2.5 text-sm font-bold text-white">
+          Coba Lagi
+        </button>
       </div>
     );
   }
@@ -806,7 +810,7 @@ export default function AdminDashboard() {
 
             <div className="flex-1 p-4 md:p-8 space-y-6">
             {activeTab === "manajemen" ? (
-              <AdminManagementPanel isSuperAdmin={user.email === ADMIN_EMAIL} />
+              <AdminManagementPanel isSuperAdmin={user.email.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase()} />
             ) : (
               <>
                 {/* Title & Quick Links */}
@@ -856,6 +860,13 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
+
+                {dataError && (
+                  <div className="flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+                    <span>{dataError}</span>
+                    <button type="button" onClick={loadData} className="shrink-0 rounded-lg bg-red-700 px-3 py-2 text-xs font-bold text-white">Coba Lagi</button>
+                  </div>
+                )}
 
                 {/* Table + Detail */}
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

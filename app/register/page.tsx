@@ -67,7 +67,8 @@ function Req() {
 // ======================
 // Sub-komponen: Badge Upload
 // ======================
-function UploadBadge({ value }: { value: string }) {
+function UploadBadge({ value, isUploading }: { value: string; isUploading?: boolean }) {
+  if (isUploading) return <span className="text-xs font-bold text-amber-600 mt-1.5 block">Mengunggah...</span>;
   if (!value) return null;
   return <span className="text-xs font-bold text-emerald-600 mt-1.5 block">✓ Tersimpan</span>;
 }
@@ -105,7 +106,7 @@ const EMPTY_FORM: RegistrationFormData = {
 };
 
 export default function RegisterPage() {
-  const { isAuthenticated, user } = useAuth();
+  const { status: authStatus, isAuthenticated, user } = useAuth();
   const { setData } = useRegistration();
   const router = useRouter();
 
@@ -126,22 +127,25 @@ export default function RegisterPage() {
 
   // Redirect jika belum login
   useEffect(() => {
-    if (!isAuthenticated) router.replace("/login");
-  }, [isAuthenticated, router]);
+    if (authStatus === "unauthenticated") router.replace("/login");
+  }, [authStatus, router]);
 
   // Isi default dari sesi user
   useEffect(() => {
     if (!initialized && user) {
-      sd((prev) => ({
-        ...prev,
-        leaderName: user.name || prev.leaderName,
-        email: user.email || prev.email,
-      }));
-      setInitialized(true);
+      const timer = window.setTimeout(() => {
+        sd((prev) => ({
+          ...prev,
+          leaderName: user.name || prev.leaderName,
+          email: user.email || prev.email,
+        }));
+        setInitialized(true);
+      }, 0);
+      return () => window.clearTimeout(timer);
     }
   }, [user, initialized]);
 
-  if (!isAuthenticated) return null;
+  if (authStatus === "loading" || !isAuthenticated) return null;
 
   // ======================
   // Handlers
