@@ -7,7 +7,7 @@ import { useRegistration } from "@/contexts/registration-context";
 import { useEffect, useState, useRef } from "react";
 import type { RegistrationFormData } from "@/types";
 import { registerParticipant, uploadSingleFile } from "@/lib/api/boc-api";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, normalizeWhatsAppNumber, isValidWhatsAppNumber } from "@/lib/utils";
 
 const BIAYA_PENDAFTARAN = 100000;
 const DANA_NUMBER = "089654850260";
@@ -225,17 +225,25 @@ export default function RegisterPage() {
     if (!d.institution.trim()) return "Asal sekolah wajib diisi.";
     if (!d.leaderName.trim()) return "Nama ketua wajib diisi.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return "Format email tidak valid.";
-    if (!/^(\+62|62|08)\d{7,14}$/.test(d.whatsapp.replace(/[\s\-()]/g, "")))
-      return "Nomor WhatsApp tidak valid (gunakan 08... atau 628...).";
+    if (!isValidWhatsAppNumber(d.whatsapp))
+      return "Nomor WhatsApp Ketua tidak valid (gunakan 08... atau 628...).";
     if (!d.foto_ketua || !d.kartu_pelajar_ketua || !d.bukti_follow_boc_ketua || !d.bukti_follow_yv_ketua)
       return "Berkas Ketua (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
-    if (!d.nama_anggota_1.trim() || !d.whatsapp_anggota_1.trim())
-      return "Nama dan WhatsApp Anggota 1 wajib diisi.";
+    if (!d.nama_anggota_1.trim())
+      return "Nama Anggota 1 wajib diisi.";
+    if (!d.whatsapp_anggota_1.trim())
+      return "WhatsApp Anggota 1 wajib diisi.";
+    if (!isValidWhatsAppNumber(d.whatsapp_anggota_1))
+      return "Nomor WhatsApp Anggota 1 tidak valid (gunakan 08... atau 628...).";
     if (!d.foto_anggota_1 || !d.kartu_pelajar_anggota_1 || !d.bukti_follow_boc_anggota_1 || !d.bukti_follow_yv_anggota_1)
       return "Berkas Anggota 1 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
     
-    if (!d.nama_anggota_2.trim() || !d.whatsapp_anggota_2.trim())
-      return "Nama dan WhatsApp Anggota 2 wajib diisi.";
+    if (!d.nama_anggota_2.trim())
+      return "Nama Anggota 2 wajib diisi.";
+    if (!d.whatsapp_anggota_2.trim())
+      return "WhatsApp Anggota 2 wajib diisi.";
+    if (!isValidWhatsAppNumber(d.whatsapp_anggota_2))
+      return "Nomor WhatsApp Anggota 2 tidak valid (gunakan 08... atau 628...).";
     if (!d.foto_anggota_2 || !d.kartu_pelajar_anggota_2 || !d.bukti_follow_boc_anggota_2 || !d.bukti_follow_yv_anggota_2)
       return "Berkas Anggota 2 (Foto, Kartu Pelajar, Bukti Follow BoC & YV) wajib dilengkapi.";
 
@@ -330,19 +338,24 @@ export default function RegisterPage() {
     setSubmitStatus("loading");
 
     try {
+      // Normalisasi nomor WhatsApp sebelum dikirim ke Google Sheets (hilangkan simbol +, -, spasi)
+      const normWaKetua = normalizeWhatsAppNumber(d.whatsapp);
+      const normWaAnggota1 = normalizeWhatsAppNumber(d.whatsapp_anggota_1);
+      const normWaAnggota2 = normalizeWhatsAppNumber(d.whatsapp_anggota_2);
+
       // Seluruh 13 gambar sudah dalam bentuk URL Google Drive di `d`
       // Langsung simpan ke backend (proses instant < 1 detik)
       const result = await registerParticipant({
         nama_tim: d.nama_tim,
         nama_ketua: d.leaderName,
         email: d.email,
-        whatsapp: d.whatsapp,
+        whatsapp: normWaKetua,
         instansi: d.institution,
         jumlah_anggota: 3,
         nama_anggota_1: d.nama_anggota_1,
-        whatsapp_anggota_1: d.whatsapp_anggota_1,
+        whatsapp_anggota_1: normWaAnggota1,
         nama_anggota_2: d.nama_anggota_2,
-        whatsapp_anggota_2: d.whatsapp_anggota_2,
+        whatsapp_anggota_2: normWaAnggota2,
         notes: d.notes,
         foto_ketua:                 d.foto_ketua || "",
         kartu_pelajar_ketua:        d.kartu_pelajar_ketua || "",
@@ -380,7 +393,6 @@ export default function RegisterPage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
-
   // ======================
   // Style helpers
   // ======================
@@ -926,9 +938,9 @@ export default function RegisterPage() {
               {[
                 { label: "Nama Tim", value: d.nama_tim },
                 { label: "Asal Sekolah", value: d.institution },
-                { label: "Ketua", value: `${d.leaderName} (${d.whatsapp})` },
-                { label: "Anggota 1", value: `${d.nama_anggota_1} (${d.whatsapp_anggota_1})` },
-                { label: "Anggota 2", value: `${d.nama_anggota_2} (${d.whatsapp_anggota_2})` },
+                { label: "Ketua", value: `${d.leaderName} (${normalizeWhatsAppNumber(d.whatsapp) || d.whatsapp})` },
+                { label: "Anggota 1", value: `${d.nama_anggota_1} (${normalizeWhatsAppNumber(d.whatsapp_anggota_1) || d.whatsapp_anggota_1})` },
+                { label: "Anggota 2", value: `${d.nama_anggota_2} (${normalizeWhatsAppNumber(d.whatsapp_anggota_2) || d.whatsapp_anggota_2})` },
                 { label: "Metode Pembayaran", value: selectedPaymentMethod?.toUpperCase() || "Belum dipilih" },
               ].map((item) => (
                 <div key={item.label} className="rounded-xl border border-[#002D61]/10 bg-[#FFF6E9] p-4">

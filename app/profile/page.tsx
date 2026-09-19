@@ -11,6 +11,7 @@ import {
   updateRegistration,
   uploadSingleFile,
 } from "@/lib/api/boc-api";
+import { normalizeWhatsAppNumber, isValidWhatsAppNumber } from "@/lib/utils";
 import type {
   RegistrationHistoryItem,
   RegistrationDetail,
@@ -153,11 +154,11 @@ function EditPanel({
     institution: detail.instansi,
     leaderName: detail.nama_ketua,
     email: detail.email,
-    whatsapp: detail.whatsapp,
+    whatsapp: detail.whatsapp === "#ERROR!" ? "" : detail.whatsapp,
     nama_anggota_1: detail.nama_anggota_1,
-    whatsapp_anggota_1: detail.whatsapp_anggota_1,
+    whatsapp_anggota_1: detail.whatsapp_anggota_1 === "#ERROR!" ? "" : detail.whatsapp_anggota_1,
     nama_anggota_2: detail.nama_anggota_2,
-    whatsapp_anggota_2: detail.whatsapp_anggota_2,
+    whatsapp_anggota_2: detail.whatsapp_anggota_2 === "#ERROR!" ? "" : detail.whatsapp_anggota_2,
     notes: detail.notes,
     foto_ketua: detail.foto_ketua,
     kartu_pelajar_ketua: detail.kartu_pelajar_ketua,
@@ -203,18 +204,39 @@ function EditPanel({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading"); setErrorMsg("");
+
+    const normWaKetua = normalizeWhatsAppNumber(d.whatsapp);
+    const normWaAnggota1 = normalizeWhatsAppNumber(d.whatsapp_anggota_1);
+    const normWaAnggota2 = normalizeWhatsAppNumber(d.whatsapp_anggota_2);
+
+    if (!isValidWhatsAppNumber(normWaKetua)) {
+      setErrorMsg("Nomor WhatsApp Ketua tidak valid (gunakan 08... atau 628...).");
+      setStatus("error");
+      return;
+    }
+    if (d.whatsapp_anggota_1 && !isValidWhatsAppNumber(normWaAnggota1)) {
+      setErrorMsg("Nomor WhatsApp Anggota 1 tidak valid (gunakan 08... atau 628...).");
+      setStatus("error");
+      return;
+    }
+    if (d.whatsapp_anggota_2 && !isValidWhatsAppNumber(normWaAnggota2)) {
+      setErrorMsg("Nomor WhatsApp Anggota 2 tidak valid (gunakan 08... atau 628...).");
+      setStatus("error");
+      return;
+    }
+
     const result = await updateRegistration({
       registration_id: detail.registration_id,
       email,
       nama_tim: d.nama_tim,
       nama_ketua: d.leaderName,
-      whatsapp: d.whatsapp,
+      whatsapp: normWaKetua,
       instansi: d.institution,
       jumlah_anggota: 3,
       nama_anggota_1: d.nama_anggota_1,
-      whatsapp_anggota_1: d.whatsapp_anggota_1,
+      whatsapp_anggota_1: normWaAnggota1,
       nama_anggota_2: d.nama_anggota_2,
-      whatsapp_anggota_2: d.whatsapp_anggota_2,
+      whatsapp_anggota_2: normWaAnggota2,
       notes: d.notes,
       foto_ketua: d.foto_ketua,
       kartu_pelajar_ketua: d.kartu_pelajar_ketua,
@@ -256,8 +278,7 @@ function EditPanel({
           <div><label className={lc}>Nama Tim</label><input name="nama_tim" value={d.nama_tim} onChange={handleChange} disabled={isLoading} className={ic} /></div>
           <div><label className={lc}>Asal Sekolah</label><input name="institution" value={d.institution} onChange={handleChange} disabled={isLoading} className={ic} /></div>
           <div><label className={lc}>Nama Ketua</label><input name="leaderName" value={d.leaderName} onChange={handleChange} disabled={isLoading} className={ic} /></div>
-          <div><label className={lc}>WhatsApp Ketua</label><input name="whatsapp" value={d.whatsapp} onChange={handleChange} disabled={isLoading} className={ic} /></div>
-          <div><label className={lc}>WhatsApp Ketua</label><input name="whatsapp" value={d.whatsapp} onChange={handleChange} disabled={isLoading} className={ic} /></div>
+          <div><label className={lc}>WhatsApp Ketua</label><input name="whatsapp" value={d.whatsapp} onChange={handleChange} disabled={isLoading} className={ic} placeholder="081234567890" /></div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -500,11 +521,11 @@ function RegistrationCard({
                   { label: "Jumlah Anggota", value: `${detail.jumlah_anggota} Orang` },
                   { label: "Nama Ketua", value: detail.nama_ketua },
                   { label: "Email", value: detail.email },
-                  { label: "WhatsApp Ketua", value: detail.whatsapp },
+                  { label: "WhatsApp Ketua", value: detail.whatsapp === "#ERROR!" ? "Perlu diperbaiki (klik Edit)" : detail.whatsapp },
                   { label: "Anggota 1", value: detail.nama_anggota_1 },
-                  { label: "WA Anggota 1", value: detail.whatsapp_anggota_1 },
+                  { label: "WA Anggota 1", value: detail.whatsapp_anggota_1 === "#ERROR!" ? "Perlu diperbaiki (klik Edit)" : detail.whatsapp_anggota_1 },
                   { label: "Anggota 2", value: detail.nama_anggota_2 },
-                  { label: "WA Anggota 2", value: detail.whatsapp_anggota_2 },
+                  { label: "WA Anggota 2", value: detail.whatsapp_anggota_2 === "#ERROR!" ? "Perlu diperbaiki (klik Edit)" : detail.whatsapp_anggota_2 },
                 ].map((item) => (
                   <div key={item.label}>
                     <p className="text-[10px] text-[#002D61]/50 uppercase font-bold tracking-wider">{item.label}</p>

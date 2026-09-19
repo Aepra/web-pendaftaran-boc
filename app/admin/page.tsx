@@ -12,6 +12,7 @@ import {
   removeAdmin,
 } from "@/lib/api/boc-api";
 import type { RegistrationHistoryItem, RegistrationDetail, ParticipantStatus } from "@/types";
+import { toWhatsAppLink } from "@/lib/utils";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "abelekaputra05@gmail.com";
 
@@ -350,13 +351,33 @@ function AdminDetailPanel({
           { label: "Ketua", value: detail.nama_ketua },
           { label: "Sekolah", value: detail.instansi },
           { label: "Email", value: detail.email },
-          { label: "WhatsApp", value: detail.whatsapp },
+          {
+            label: "WhatsApp",
+            value: detail.whatsapp === "#ERROR!"
+              ? "⚠️ #ERROR! (Format salah di Sheet)"
+              : detail.whatsapp,
+            isWa: detail.whatsapp !== "#ERROR!" && !!detail.whatsapp,
+            rawWa: detail.whatsapp,
+          },
           { label: "Jml. Anggota", value: `${detail.jumlah_anggota} Orang` },
           { label: "Tgl. Daftar", value: formatDate(detail.created_at) },
         ].map((item) => (
           <div key={item.label}>
             <p className="text-[10px] text-[#002D61]/50 uppercase font-bold tracking-wider">{item.label}</p>
-            <p className="font-semibold text-[#002D61] text-xs mt-0.5 break-all">{item.value || "—"}</p>
+            {item.isWa ? (
+              <a
+                href={toWhatsAppLink(item.rawWa)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-bold text-emerald-700 hover:text-emerald-600 hover:underline text-xs mt-0.5 inline-flex items-center gap-1 break-all"
+                title="Klik untuk chat WhatsApp"
+              >
+                {item.value}
+                <svg className="w-3 h-3 text-emerald-600 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/></svg>
+              </a>
+            ) : (
+              <p className={`text-xs mt-0.5 break-all ${item.value?.includes("#ERROR!") ? "font-bold text-red-600 bg-red-50 p-1 rounded border border-red-200" : "font-semibold text-[#002D61]"}`}>{item.value || "—"}</p>
+            )}
           </div>
         ))}
       </div>
@@ -365,11 +386,26 @@ function AdminDetailPanel({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-[10px] text-[#002D61]/50 uppercase font-bold tracking-wider">Anggota 1</p>
-            <p className="font-semibold text-[#002D61] text-xs mt-0.5">{detail.nama_anggota_1}</p>
+            <p className="font-semibold text-[#002D61] text-xs mt-0.5">{detail.nama_anggota_1 || "—"}</p>
           </div>
           <div>
             <p className="text-[10px] text-[#002D61]/50 uppercase font-bold tracking-wider">WA Anggota 1</p>
-            <p className="font-semibold text-[#002D61] text-xs mt-0.5">{detail.whatsapp_anggota_1}</p>
+            {detail.whatsapp_anggota_1 === "#ERROR!" ? (
+              <p className="font-bold text-red-600 bg-red-50 p-1 rounded border border-red-200 text-xs mt-0.5">⚠️ #ERROR! (Format salah di Sheet)</p>
+            ) : detail.whatsapp_anggota_1 ? (
+              <a
+                href={toWhatsAppLink(detail.whatsapp_anggota_1)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-bold text-emerald-700 hover:text-emerald-600 hover:underline text-xs mt-0.5 inline-flex items-center gap-1 break-all"
+                title="Klik untuk chat WhatsApp"
+              >
+                {detail.whatsapp_anggota_1}
+                <svg className="w-3 h-3 text-emerald-600 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/></svg>
+              </a>
+            ) : (
+              <p className="font-semibold text-[#002D61] text-xs mt-0.5">—</p>
+            )}
           </div>
         </div>
       )}
@@ -377,11 +413,26 @@ function AdminDetailPanel({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-[10px] text-[#002D61]/50 uppercase font-bold tracking-wider">Anggota 2</p>
-            <p className="font-semibold text-[#002D61] text-xs mt-0.5">{detail.nama_anggota_2}</p>
+            <p className="font-semibold text-[#002D61] text-xs mt-0.5">{detail.nama_anggota_2 || "—"}</p>
           </div>
           <div>
             <p className="text-[10px] text-[#002D61]/50 uppercase font-bold tracking-wider">WA Anggota 2</p>
-            <p className="font-semibold text-[#002D61] text-xs mt-0.5">{detail.whatsapp_anggota_2}</p>
+            {detail.whatsapp_anggota_2 === "#ERROR!" ? (
+              <p className="font-bold text-red-600 bg-red-50 p-1 rounded border border-red-200 text-xs mt-0.5">⚠️ #ERROR! (Format salah di Sheet)</p>
+            ) : detail.whatsapp_anggota_2 ? (
+              <a
+                href={toWhatsAppLink(detail.whatsapp_anggota_2)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-bold text-emerald-700 hover:text-emerald-600 hover:underline text-xs mt-0.5 inline-flex items-center gap-1 break-all"
+                title="Klik untuk chat WhatsApp"
+              >
+                {detail.whatsapp_anggota_2}
+                <svg className="w-3 h-3 text-emerald-600 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 15 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/></svg>
+              </a>
+            ) : (
+              <p className="font-semibold text-[#002D61] text-xs mt-0.5">—</p>
+            )}
           </div>
         </div>
       )}

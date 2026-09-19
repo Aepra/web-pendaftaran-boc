@@ -3,6 +3,7 @@ import https from "node:https";
 import http from "node:http";
 import { URL } from "node:url";
 import { auth } from "@/auth";
+import { normalizeWhatsAppNumber } from "@/lib/utils";
 
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "";
 
@@ -199,6 +200,20 @@ export async function POST(request: Request) {
 
       if (!isAdmin) {
         return NextResponse.json({ status: "error", message: "Akses admin diperlukan." }, { status: 403 });
+      }
+    }
+
+    // Normalisasi nomor WhatsApp pada server proxy untuk mencegah Formula Parse Error di Google Sheets
+    if (body && typeof body === "object") {
+      const b = body as Record<string, unknown>;
+      if (typeof b.whatsapp === "string") {
+        b.whatsapp = normalizeWhatsAppNumber(b.whatsapp);
+      }
+      if (typeof b.whatsapp_anggota_1 === "string") {
+        b.whatsapp_anggota_1 = normalizeWhatsAppNumber(b.whatsapp_anggota_1);
+      }
+      if (typeof b.whatsapp_anggota_2 === "string") {
+        b.whatsapp_anggota_2 = normalizeWhatsAppNumber(b.whatsapp_anggota_2);
       }
     }
 
