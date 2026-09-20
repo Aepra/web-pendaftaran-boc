@@ -92,13 +92,12 @@ export default function Navbar() {
     : isAuthenticated
       ? (isAdmin ? NAV_LINKS_ADMIN : NAV_LINKS_AUTH)
       : NAV_LINKS_GUEST;
-
   const isLinkActive = (href: string) => {
     if (pathname !== "/") {
       return pathname === href;
     }
     if (href === "/") return activeSection === "home";
-    if (href.startsWith("/#")) {
+    if (typeof href === "string" && href.startsWith("/#")) {
       const sectionId = href.replace("/#", "");
       return activeSection === sectionId;
     }

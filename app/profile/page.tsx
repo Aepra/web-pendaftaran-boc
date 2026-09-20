@@ -193,7 +193,7 @@ function EditPanel({
     try {
       setUploadingFields((prev) => ({ ...prev, [field]: true }));
       const b64 = await compressImage(file);
-      const prefix = d.nama_tim ? d.nama_tim.replace(/[^a-zA-Z0-9]/g, "_") : "Tim";
+      const prefix = d.nama_tim ? String(d.nama_tim).replace(/[^a-zA-Z0-9]/g, "_") : "Tim";
       const filename = `${prefix}_Update_${String(field)}.jpg`;
       const url = await uploadSingleFile(b64, filename);
       sd((prev) => ({ ...prev, [field]: url }));

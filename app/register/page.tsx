@@ -174,7 +174,7 @@ export default function RegisterPage() {
     try {
       setUploadingFields((prev) => ({ ...prev, [fieldName]: true }));
       const base64 = await compressImage(file);
-      const prefix = d.nama_tim ? d.nama_tim.replace(/[^a-zA-Z0-9]/g, "_") : "Tim";
+      const prefix = d.nama_tim ? String(d.nama_tim).replace(/[^a-zA-Z0-9]/g, "_") : "Tim";
       const filename = `${prefix}_${String(fieldName)}.jpg`;
       
       const url = await uploadSingleFile(base64, filename);
@@ -936,11 +936,11 @@ export default function RegisterPage() {
 
             <div className="mb-6 grid gap-4 sm:grid-cols-2">
               {[
-                { label: "Nama Tim", value: d.nama_tim },
-                { label: "Asal Sekolah", value: d.institution },
-                { label: "Ketua", value: `${d.leaderName} (${normalizeWhatsAppNumber(d.whatsapp) || d.whatsapp})` },
-                { label: "Anggota 1", value: `${d.nama_anggota_1} (${normalizeWhatsAppNumber(d.whatsapp_anggota_1) || d.whatsapp_anggota_1})` },
-                { label: "Anggota 2", value: `${d.nama_anggota_2} (${normalizeWhatsAppNumber(d.whatsapp_anggota_2) || d.whatsapp_anggota_2})` },
+                { label: "Nama Tim", value: d.nama_tim || "—" },
+                { label: "Asal Sekolah", value: d.institution || "—" },
+                { label: "Ketua", value: `${d.leaderName || "—"}${d.whatsapp ? ` (${normalizeWhatsAppNumber(d.whatsapp) || String(d.whatsapp)})` : ""}` },
+                { label: "Anggota 1", value: d.nama_anggota_1 ? `${d.nama_anggota_1}${d.whatsapp_anggota_1 ? ` (${normalizeWhatsAppNumber(d.whatsapp_anggota_1) || String(d.whatsapp_anggota_1)})` : ""}` : "—" },
+                { label: "Anggota 2", value: d.nama_anggota_2 ? `${d.nama_anggota_2}${d.whatsapp_anggota_2 ? ` (${normalizeWhatsAppNumber(d.whatsapp_anggota_2) || String(d.whatsapp_anggota_2)})` : ""}` : "—" },
                 { label: "Metode Pembayaran", value: selectedPaymentMethod?.toUpperCase() || "Belum dipilih" },
               ].map((item) => (
                 <div key={item.label} className="rounded-xl border border-[#002D61]/10 bg-[#FFF6E9] p-4">
@@ -953,10 +953,21 @@ export default function RegisterPage() {
             <div className="mb-6 rounded-xl border border-[#002D61]/10 p-4">
               <p className="mb-3 text-xs font-bold text-[#002D61]/55">Link Twibbon Instagram</p>
               <div className="space-y-2 text-sm">
-                {[d.link_twibbon_ketua, d.link_twibbon_anggota_1, d.link_twibbon_anggota_2].map((link, index) => (
-                  <a key={`${index}-${link}`} href={link} target="_blank" rel="noreferrer" className="block break-all font-semibold text-[#700702] underline">
-                    {index === 0 ? "Ketua" : `Anggota ${index}`}: {link}
-                  </a>
+                {[
+                  { role: "Ketua", link: d.link_twibbon_ketua },
+                  { role: "Anggota 1", link: d.link_twibbon_anggota_1 },
+                  { role: "Anggota 2", link: d.link_twibbon_anggota_2 },
+                ].map(({ role, link }, index) => (
+                  <div key={`${index}-${role}`} className="text-sm">
+                    <span className="font-bold text-[#002D61]/70 mr-1">{role}:</span>
+                    {link ? (
+                      <a href={link} target="_blank" rel="noreferrer" className="font-semibold text-[#700702] underline break-all">
+                        {link}
+                      </a>
+                    ) : (
+                      <span className="text-[#002D61]/40 italic">Tidak ada</span>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
