@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     q: "Kapan batas akhir pendaftaran?",
-    a: "Pendaftaran dibuka mulai 1 Agustus 2026 dan ditutup pada 30 September 2026. Pastikan semua berkas terisi dan pembayaran sudah diunggah sebelum batas waktu.",
+    a: "Pendaftaran dibuka mulai 1 Agustus 2026 dan ditutup pada 11 Oktober 2026. Pastikan semua berkas terisi dan pembayaran sudah diunggah sebelum batas waktu.",
   },
   {
     q: "Apakah technical meeting wajib diikuti?",

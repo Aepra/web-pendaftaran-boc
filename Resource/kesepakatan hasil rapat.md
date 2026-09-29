@@ -8,7 +8,7 @@
 *   **31 Mei:** Finalisasi Teamwork
 *   **1 - 6 Juni:** Rapat Divisi (Online)
 *   **20 Juni:** Rapat Konsep (Online)
-*   **1 Agustus - 30 September:** Pembukaan Pendaftaran (melalui Web)
+*   **1 Agustus - 11 Oktober:** Pembukaan Pendaftaran (melalui Web)
 *   **Juli - September:** Rapat Divisi (Online, disesuaikan dengan kebutuhan)
 *   **10 atau 11 Oktober:** Rapat Teknis & Gladi (Offline)
 *   **14 atau 15 Oktober:** Technical Meeting (Online)
@@ -28,7 +28,7 @@
 *   **4 - 19 Juni:** Diskusi Jenis Lomba
 *   **20 Juni:** Rapat Konsep
 *   **21 Juni - 30 Juli:** Penyusunan TOR (Term of Reference) dan Tatib (Tata Tertib)
-*   **1 Agustus - 30 September:** Pembukaan Pendaftaran
+*   **1 Agustus - 11 Oktober:** Pembukaan Pendaftaran
 *   **10 atau 11 Oktober:** Rapat Teknis dan Gladi
 *   **14 atau 15 Oktober:** Technical Meeting (Online)
 
