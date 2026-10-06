@@ -47,9 +47,14 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#game-concept" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">
+                <Link href="/#game-concept" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">
                   Konsep 5 Babak
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/tatib" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">
+                  Tata Tertib & Regulasi
+                </Link>
               </li>
               <li>
                 <a href="#timeline" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">

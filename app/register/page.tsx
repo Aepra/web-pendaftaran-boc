@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useRegistration } from "@/contexts/registration-context";
@@ -120,6 +121,7 @@ export default function RegisterPage() {
   const [currentStep, setCurrentStep] = useState<RegistrationStep>(1);
   const [copiedTwibbonCaption, setCopiedTwibbonCaption] = useState(false);
   const [uploadingFields, setUploadingFields] = useState<Record<string, boolean>>({});
+  const [agreedToRules, setAgreedToRules] = useState(false);
   const isSubmitting = useRef(false);
   const selectedBankAccount = BANK_ACCOUNTS.find(
     (account) => account.bank === selectedPaymentMethod
@@ -320,6 +322,14 @@ export default function RegisterPage() {
     const isAnyUploading = Object.values(uploadingFields).some(Boolean);
     if (isAnyUploading) {
       setErrorMsg("Mohon tunggu hingga semua gambar selesai diunggah ke Google Drive.");
+      setSubmitStatus("error");
+      isSubmitting.current = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (!agreedToRules) {
+      setErrorMsg("Anda wajib membaca dan menyetujui Tata Tertib & Ketentuan Perlombaan sebelum mengirim pendaftaran.");
       setSubmitStatus("error");
       isSubmitting.current = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -993,13 +1003,36 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Persetujuan Tata Tertib */}
+            <div className="mb-6 p-4 rounded-xl border border-[#700702]/25 bg-[#700702]/5">
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={agreedToRules}
+                  onChange={(e) => setAgreedToRules(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-[#700702] text-[#700702] focus:ring-[#700702] cursor-pointer"
+                />
+                <span className="text-xs sm:text-sm text-[#002D61] leading-relaxed">
+                  Saya menyatakan bahwa seluruh anggota tim telah membaca, memahami, dan menyetujui seluruh ketentuan dalam{" "}
+                  <Link
+                    href="/tatib"
+                    target="_blank"
+                    className="font-extrabold text-[#700702] underline hover:text-[#8a0903]"
+                  >
+                    Tata Tertib & Mekanisme Lomba BoC 2026
+                  </Link>
+                  , serta bersedia menerima sanksi diskualifikasi apabila terbukti melanggar aturan.
+                </span>
+              </label>
+            </div>
+
             <div className="flex flex-col-reverse gap-3 sm:flex-row">
               <button type="button" onClick={handlePreviousStep} disabled={isLoading} className="min-h-14 rounded-xl border border-[#002D61]/20 px-6 py-3 font-bold text-[#002D61] hover:bg-[#002D61]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#002D61] disabled:opacity-60">
                 Kembali
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !agreedToRules}
                 className="flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-[#700702] px-6 py-3 text-lg font-extrabold text-white shadow-[0_4px_25px_rgba(112,7,2,0.25)] transition-all hover:bg-[#8a0903] hover:shadow-[0_6px_35px_rgba(112,7,2,0.4)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#700702] disabled:opacity-60"
               >
               {isLoading ? (

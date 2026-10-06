@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function GameConcept() {
   return (
     <section id="game-concept" className="relative w-full bg-[#FFF6E9]/75 backdrop-blur-[2px] py-12 md:py-16">
@@ -132,9 +134,48 @@ export default function GameConcept() {
           </div>
         </div>
 
+        {/* Banner Tata Tertib & Detail Regulasi */}
+        <div className="mt-12 p-6 md:p-8 rounded-2xl bg-gradient-to-r from-[#002D61] via-[#00224b] to-[#120303] text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6 border border-[#002D61]/20">
+          <div className="space-y-2 text-center sm:text-left">
+            <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-amber-300 text-[11px] font-extrabold tracking-wider uppercase">
+              Dokumen Resmi Lomba
+            </span>
+            <h4 className="text-xl md:text-2xl font-black text-white">
+              Tata Tertib & Mekanisme Lengkap
+            </h4>
+            <p className="text-xs md:text-sm text-white/80 max-w-xl">
+              Pelajari 7 aturan pokok disiplin, sistem penilaian bertingkat, penalti keterlambatan, hingga aturan rebutan Matrix Game.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto shrink-0">
+            <Link
+              href="/tatib"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-[#002D61] font-extrabold text-xs md:text-sm hover:bg-[#FFF6E9] transition-all shadow-md"
+            >
+              Baca Tata Tertib
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+            <a
+              href="/KONSEP%20GAMES%20BOC%202026%20(1).pdf"
+              download="KONSEP_GAMES_BOC_2026.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#700702] text-white font-extrabold text-xs md:text-sm hover:bg-[#8a0903] transition-all shadow-md border border-white/20"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Unduh PDF
+            </a>
+          </div>
+        </div>
+
         {/* Note */}
-        <p className="text-xs text-[#002D61]/40 text-center mt-10">
-          Detail teknis dan aturan lengkap akan disampaikan saat Technical Meeting.
+        <p className="text-xs text-[#002D61]/40 text-center mt-6">
+          Detail teknis dan aturan lengkap juga akan dibahas bersama guru pembina saat Technical Meeting.
         </p>
       </div>
     </section>
