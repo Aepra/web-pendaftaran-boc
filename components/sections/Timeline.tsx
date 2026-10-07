@@ -1,7 +1,7 @@
 export default function Timeline() {
   const phases = [
     {
-      date: "1 Agustus – 11 Oktober 2026",
+      date: "1 Agustus – 7 Oktober 2026",
       title: "Case Open",
       subtitle: "Pembukaan Pendaftaran",
       desc: "Pendaftaran dibuka untuk seluruh siswa SMA/SMK/MA sederajat se-Sulawesi Selatan. Daftarkan tim Anda melalui website resmi.",
