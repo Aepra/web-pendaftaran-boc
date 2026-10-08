@@ -1,11 +1,11 @@
 /**
  * Konfigurasi Status Pendaftaran Battle of Champions (BoC) Season III 2026.
  *
- * Nilai default: false (Pendaftaran telah ditutup).
- * Dapat di-override sementara melalui environment variable NEXT_PUBLIC_REGISTRATION_OPEN="true".
+ * Nilai default: true (Pendaftaran dibuka).
+ * Dapat di-override melalui environment variable NEXT_PUBLIC_REGISTRATION_OPEN="false" untuk menutup.
  */
 export const IS_REGISTRATION_OPEN =
-  process.env.NEXT_PUBLIC_REGISTRATION_OPEN === "true";
+  process.env.NEXT_PUBLIC_REGISTRATION_OPEN !== "false";
 
 export const REGISTRATION_CLOSED_DATE = "7 Oktober 2026";
 
