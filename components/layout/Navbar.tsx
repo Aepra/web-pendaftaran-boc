@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
 
 const NAV_LINKS_GUEST = [
   { href: "/", label: "Home" },
@@ -23,7 +24,7 @@ const NAV_LINKS_AUTH = [
   { href: "/tatib", label: "Tatib" },
   { href: "/#timeline", label: "Timeline" },
   { href: "/#faq", label: "FAQ" },
-  { href: "/register", label: "Pendaftaran" },
+  ...(IS_REGISTRATION_OPEN ? [{ href: "/register", label: "Pendaftaran" }] : []),
   { href: "/profile", label: "Profil" },
 ];
 
@@ -132,7 +133,7 @@ export default function Navbar() {
           {!authReady && <div className="h-9 w-48 rounded-lg bg-[#002D61]/5 animate-pulse" aria-label="Memuat navigasi" />}
           {links.map((link) => {
             const active = isLinkActive(link.href);
-            const isCta = link.href === "/login" || link.href === "/register";
+            const isCta = link.href === "/login" || link.href === "/register" || (!IS_REGISTRATION_OPEN && link.href === "/profile");
 
             if (isCta) {
               return (
@@ -228,7 +229,7 @@ export default function Navbar() {
             )}
             {links.map((link) => {
               const active = isLinkActive(link.href);
-              const isCta = link.href === "/login" || link.href === "/register";
+              const isCta = link.href === "/login" || link.href === "/register" || (!IS_REGISTRATION_OPEN && link.href === "/profile");
 
               if (isCta) {
                 return (

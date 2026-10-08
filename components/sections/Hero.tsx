@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
 
 export default function Hero() {
   const { isAuthenticated } = useAuth();
@@ -28,15 +29,26 @@ export default function Hero() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-20 md:py-28 flex flex-col items-center text-center">
         {/* Live Registration Status Badge */}
-        <div className="inline-flex items-center gap-3 px-5 py-2 mb-6 rounded-full border border-white/25 bg-white/10 backdrop-blur-md shadow-lg">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFF6E9] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FFF6E9]" />
-          </span>
-          <span className="text-[#FFF6E9] text-xs sm:text-sm font-semibold tracking-[0.15em] uppercase">
-            Pendaftaran Resmi Dibuka
-          </span>
-        </div>
+        {IS_REGISTRATION_OPEN ? (
+          <div className="inline-flex items-center gap-3 px-5 py-2 mb-6 rounded-full border border-white/25 bg-white/10 backdrop-blur-md shadow-lg">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFF6E9] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FFF6E9]" />
+            </span>
+            <span className="text-[#FFF6E9] text-xs sm:text-sm font-semibold tracking-[0.15em] uppercase">
+              Pendaftaran Resmi Dibuka
+            </span>
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2.5 px-5 py-2 mb-6 rounded-full border border-red-300/30 bg-red-950/50 backdrop-blur-md shadow-lg">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-400" />
+            </span>
+            <span className="text-[#FFF6E9] text-xs sm:text-sm font-semibold tracking-[0.15em] uppercase">
+              Pendaftaran Telah Ditutup
+            </span>
+          </div>
+        )}
 
         {/* Season label */}
         <p className="text-xs sm:text-sm font-extrabold tracking-[0.3em] uppercase text-[#FFF6E9]/70 mb-3">
@@ -72,50 +84,99 @@ export default function Hero() {
         </p>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center justify-center">
-          {isAuthenticated ? (
-            <Link
-              href="/register"
-              className="group inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#700702] to-[#8a0903] hover:from-[#8a0903] hover:to-[#700702] text-white font-extrabold text-base rounded-xl transition-all duration-300 shadow-[0_4px_30px_rgba(112,7,2,0.4)] hover:shadow-[0_8px_45px_rgba(112,7,2,0.6)] hover:-translate-y-0.5 active:translate-y-0"
-            >
-              Daftar Sekarang
-              <svg
-                className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        {IS_REGISTRATION_OPEN ? (
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center justify-center">
+            {isAuthenticated ? (
+              <Link
+                href="/register"
+                className="group inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#700702] to-[#8a0903] hover:from-[#8a0903] hover:to-[#700702] text-white font-extrabold text-base rounded-xl transition-all duration-300 shadow-[0_4px_30px_rgba(112,7,2,0.4)] hover:shadow-[0_8px_45px_rgba(112,7,2,0.6)] hover:-translate-y-0.5 active:translate-y-0"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="group inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#700702] to-[#8a0903] hover:from-[#8a0903] hover:to-[#700702] text-white font-extrabold text-base rounded-xl transition-all duration-300 shadow-[0_4px_30px_rgba(112,7,2,0.4)] hover:shadow-[0_8px_45px_rgba(112,7,2,0.6)] hover:-translate-y-0.5 active:translate-y-0"
-            >
-              Daftar Sekarang
-              <svg
-                className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+                Daftar Sekarang
+                <svg
+                  className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="group inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#700702] to-[#8a0903] hover:from-[#8a0903] hover:to-[#700702] text-white font-extrabold text-base rounded-xl transition-all duration-300 shadow-[0_4px_30px_rgba(112,7,2,0.4)] hover:shadow-[0_8px_45px_rgba(112,7,2,0.6)] hover:-translate-y-0.5 active:translate-y-0"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          )}
+                Daftar Sekarang
+                <svg
+                  className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            )}
 
-          <a
-            href="#game-concept"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-[#FFF6E9] font-bold text-base rounded-xl border border-white/20 hover:border-white/40 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5"
-          >
-            Lihat Konsep Babak
-          </a>
-        </div>
+            <a
+              href="#game-concept"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-[#FFF6E9] font-bold text-base rounded-xl border border-white/20 hover:border-white/40 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5"
+            >
+              Lihat Konsep Babak
+            </a>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center justify-center">
+            {isAuthenticated ? (
+              <Link
+                href="/profile"
+                className="group inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#700702] to-[#8a0903] hover:from-[#8a0903] hover:to-[#700702] text-white font-extrabold text-base rounded-xl transition-all duration-300 shadow-[0_4px_30px_rgba(112,7,2,0.4)] hover:shadow-[0_8px_45px_rgba(112,7,2,0.6)] hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Cek Status Tim di Profil
+                <svg
+                  className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="group inline-flex items-center justify-center gap-2.5 px-9 py-4 bg-gradient-to-r from-[#700702] to-[#8a0903] hover:from-[#8a0903] hover:to-[#700702] text-white font-extrabold text-base rounded-xl transition-all duration-300 shadow-[0_4px_30px_rgba(112,7,2,0.4)] hover:shadow-[0_8px_45px_rgba(112,7,2,0.6)] hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Login Peserta (Cek Status)
+                <svg
+                  className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            )}
+
+            <a
+              href="#timeline"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-[#FFF6E9] font-bold text-base rounded-xl border border-white/20 hover:border-white/40 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5"
+            >
+              Lihat Jadwal Kegiatan
+            </a>
+          </div>
+        )}
         
-        <p className="text-xs sm:text-sm text-white/60 mt-4 max-w-md text-center font-medium">
-          *Catatan: Pendaftaran hanya bisa dilakukan oleh perwakilan tim (Ketua Tim).
-        </p>
+        {IS_REGISTRATION_OPEN ? (
+          <p className="text-xs sm:text-sm text-white/60 mt-4 max-w-md text-center font-medium">
+            *Catatan: Pendaftaran hanya bisa dilakukan oleh perwakilan tim (Ketua Tim).
+          </p>
+        ) : (
+          <p className="text-xs sm:text-sm text-white/70 mt-4 max-w-md text-center font-medium">
+            *Masa pendaftaran telah berakhir pada 7 Oktober 2026. Peserta terdaftar dapat memantau status verifikasi melalui menu Profil.
+          </p>
+        )}
 
         {/* Stats Row */}
         <div className="mt-16 md:mt-20 grid grid-cols-1 sm:grid-cols-3 gap-5 md:gap-8 w-full max-w-3xl">

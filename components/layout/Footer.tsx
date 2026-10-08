@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -76,9 +77,16 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-sm font-semibold">
               <li>
-                <Link href="/register" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">
-                  Pendaftaran Tim
-                </Link>
+                {IS_REGISTRATION_OPEN ? (
+                  <Link href="/register" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">
+                    Pendaftaran Tim
+                  </Link>
+                ) : (
+                  <Link href="/register" className="text-[#002D61]/70 hover:text-[#700702] transition-colors inline-flex items-center gap-1.5">
+                    <span>Pendaftaran Tim</span>
+                    <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded-full">Ditutup</span>
+                  </Link>
+                )}
               </li>
               <li>
                 <Link href="/login" className="text-[#002D61]/70 hover:text-[#700702] transition-colors">

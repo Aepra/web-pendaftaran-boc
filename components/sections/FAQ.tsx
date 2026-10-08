@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
 
 const faqs = [
   {
@@ -21,7 +22,9 @@ const faqs = [
   },
   {
     q: "Kapan batas akhir pendaftaran?",
-    a: "Pendaftaran dibuka mulai 1 Agustus 2026 dan ditutup pada 7 Oktober 2026. Pastikan semua berkas terisi dan pembayaran sudah diunggah sebelum batas waktu.",
+    a: IS_REGISTRATION_OPEN
+      ? "Pendaftaran dibuka mulai 1 Agustus 2026 dan ditutup pada 7 Oktober 2026. Pastikan semua berkas terisi dan pembayaran sudah diunggah sebelum batas waktu."
+      : "Pendaftaran dibuka mulai 1 Agustus 2026 dan telah resmi ditutup pada 7 Oktober 2026. Seluruh tim yang telah terdaftar dapat memantau status verifikasi berkas di dashboard profil masing-masing.",
   },
   {
     q: "Apakah technical meeting wajib diikuti?",

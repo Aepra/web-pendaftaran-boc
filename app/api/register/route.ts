@@ -4,6 +4,7 @@ import http from "node:http";
 import { URL } from "node:url";
 import { auth } from "@/auth";
 import { normalizeWhatsAppNumber } from "@/lib/utils";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
 
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL || "";
 
@@ -179,6 +180,13 @@ export async function POST(request: Request) {
 
     if (typeof action !== "string") {
       return NextResponse.json({ status: "error", message: "Action tidak valid." }, { status: 400 });
+    }
+
+    if (action === "register" && !IS_REGISTRATION_OPEN) {
+      return NextResponse.json(
+        { status: "error", message: "Pendaftaran telah resmi ditutup pada 7 Oktober 2026." },
+        { status: 403 }
+      );
     }
 
     if (ADMIN_ACTIONS.has(action)) {

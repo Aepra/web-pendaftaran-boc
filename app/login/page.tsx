@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { useEffect } from "react";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
 
 export default function LoginPage() {
   const { status, roleStatus, role, isAuthenticated, user, retryRoleCheck, login } = useAuth();
@@ -11,7 +12,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && user && roleStatus === "ready") {
-      router.replace(role === "admin" ? "/admin" : "/register");
+      router.replace(role === "admin" ? "/admin" : (IS_REGISTRATION_OPEN ? "/register" : "/profile"));
     }
   }, [isAuthenticated, user, roleStatus, role, router]);
 
@@ -46,7 +47,9 @@ export default function LoginPage() {
             Season III • 2026
           </p>
           <p className="text-sm text-[#002D61]/60 text-center mb-10">
-            Masuk untuk melanjutkan pendaftaran
+            {IS_REGISTRATION_OPEN
+              ? "Masuk untuk melanjutkan pendaftaran"
+              : "Masuk untuk melihat status tim & pendaftaran"}
           </p>
 
           {/* Google Login Button */}
@@ -80,7 +83,9 @@ export default function LoginPage() {
           )}
 
           <p className="text-xs text-[#002D61]/40 text-center mt-6">
-            Masuk menggunakan akun Google Anda untuk mendaftar
+            {IS_REGISTRATION_OPEN
+              ? "Masuk menggunakan akun Google Anda untuk mendaftar"
+              : "Masuk menggunakan akun Google Anda untuk mengakses profil tim"}
           </p>
         </div>
 

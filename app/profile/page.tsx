@@ -12,6 +12,8 @@ import {
   uploadSingleFile,
 } from "@/lib/api/boc-api";
 import { normalizeWhatsAppNumber, isValidWhatsAppNumber } from "@/lib/utils";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
+import Link from "next/link";
 import type {
   RegistrationHistoryItem,
   RegistrationDetail,
@@ -776,10 +778,29 @@ export default function ProfilePage() {
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               </div>
               <h3 className="text-xl font-bold text-[#002D61] mb-2">Belum ada tim terdaftar</h3>
-              <p className="text-[#002D61]/60 mb-6 font-medium text-sm">Anda belum mendaftarkan tim investigasi apa pun.</p>
-              <button onClick={() => router.push("/register")} className="px-6 py-3 bg-[#700702] hover:bg-[#8a0903] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
-                Mulai Pendaftaran
-              </button>
+              <p className="text-[#002D61]/60 mb-6 font-medium text-sm">
+                {IS_REGISTRATION_OPEN
+                  ? "Anda belum mendaftarkan tim investigasi apa pun."
+                  : "Anda belum mendaftarkan tim, dan periode pendaftaran Battle of Champions Season III telah resmi berakhir pada 7 Oktober 2026."}
+              </p>
+              {IS_REGISTRATION_OPEN ? (
+                <button onClick={() => router.push("/register")} className="px-6 py-3 bg-[#700702] hover:bg-[#8a0903] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+                  Mulai Pendaftaran
+                </button>
+              ) : (
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-bold border border-red-200">
+                    <span className="w-2 h-2 rounded-full bg-red-600" />
+                    Pendaftaran Telah Ditutup
+                  </div>
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#002D61] text-white text-xs font-bold hover:bg-[#00224b] transition-all shadow-sm"
+                  >
+                    Kembali ke Beranda
+                  </Link>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">

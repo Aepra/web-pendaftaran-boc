@@ -9,6 +9,7 @@ import { useEffect, useState, useRef } from "react";
 import type { RegistrationFormData } from "@/types";
 import { registerParticipant, uploadSingleFile } from "@/lib/api/boc-api";
 import { formatRupiah, normalizeWhatsAppNumber, isValidWhatsAppNumber } from "@/lib/utils";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
 
 const BIAYA_PENDAFTARAN = 100000;
 const DANA_NUMBER = "089654850260";
@@ -75,6 +76,112 @@ function UploadBadge({ value, isUploading }: { value: string; isUploading?: bool
 }
 
 // ======================
+// Sub-komponen: Pendaftaran Ditutup
+// ======================
+function RegistrationClosedView({ isAuthenticated }: { isAuthenticated: boolean }) {
+  return (
+    <div className="min-h-screen bg-[#FFF6E9] font-sans text-[#002D61] antialiased">
+      {/* Ambient BG */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#700702]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#002D61]/5 rounded-full blur-3xl" />
+      </div>
+
+      <main className="relative z-10 max-w-3xl mx-auto px-4 pt-28 pb-16 md:py-24">
+        <div className="bg-white/95 backdrop-blur-md border border-[#002D61]/10 rounded-3xl p-6 sm:p-10 shadow-xl shadow-[#002D61]/5 text-center">
+          {/* Status Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-red-50 border border-red-200 text-red-700 text-xs font-bold uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-red-600" />
+            Pendaftaran Telah Ditutup
+          </div>
+
+          <div className="w-20 h-20 mx-auto bg-gradient-to-br from-[#700702]/10 to-[#002D61]/10 rounded-3xl flex items-center justify-center text-[#700702] mb-6 border border-[#700702]/20 shadow-inner">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+
+          <h1 className="text-2xl sm:text-4xl font-black text-[#002D61] tracking-tight mb-3">
+            Pendaftaran Telah Ditutup
+          </h1>
+          <p className="text-sm sm:text-base text-[#002D61]/70 max-w-xl mx-auto leading-relaxed mb-8">
+            Periode pendaftaran <strong>Battle of Champions Season III</strong> telah resmi berakhir pada <strong>7 Oktober 2026</strong>. Terima kasih yang sebesar-besarnya atas antusiasme seluruh tim pendaftar!
+          </p>
+
+          {/* Action Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-8">
+            <div className="p-5 rounded-2xl bg-[#FFF6E9] border border-[#002D61]/10">
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#002D61]/60 mb-2">
+                <svg className="w-4 h-4 text-[#700702]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Sudah Mendaftar?
+              </div>
+              <p className="text-xs sm:text-sm text-[#002D61]/80 leading-relaxed mb-4">
+                Bagi tim yang sudah melakukan pendaftaran, Anda dapat memantau status verifikasi dan berkas tim melalui halaman Profil.
+              </p>
+              <Link
+                href={isAuthenticated ? "/profile" : "/login"}
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[#002D61] hover:bg-[#00224b] text-white text-xs sm:text-sm font-bold rounded-xl transition shadow-sm"
+              >
+                {isAuthenticated ? "Buka Profil Tim" : "Login untuk Cek Profil"}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </Link>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#FFF6E9] border border-[#002D61]/10">
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-[#002D61]/60 mb-2">
+                <svg className="w-4 h-4 text-[#002D61]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Agenda Selanjutnya
+              </div>
+              <ul className="text-xs sm:text-sm text-[#002D61]/80 space-y-1.5 mb-4">
+                <li>• <strong>14/15 Okt 2026:</strong> Technical Meeting (Online)</li>
+                <li>• <strong>17 Okt 2026:</strong> Hari H (Investigation Day)</li>
+              </ul>
+              <Link
+                href="/tatib"
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white hover:bg-white/80 border border-[#002D61]/15 text-[#002D61] text-xs sm:text-sm font-bold rounded-xl transition shadow-sm"
+              >
+                Baca Tata Tertib Lomba
+              </Link>
+            </div>
+          </div>
+
+          {/* Help Contact */}
+          <div className="p-4 rounded-2xl bg-[#002D61]/5 border border-[#002D61]/10 text-xs sm:text-sm text-[#002D61]/80 mb-6">
+            <span className="font-bold text-[#002D61]">Butuh bantuan terkait pendaftaran Anda?</span>
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-[#700702]">
+              <a href="https://wa.me/6289607456683" target="_blank" rel="noreferrer" className="hover:underline">
+                Nanda: 0896-0745-6683
+              </a>
+              <span>•</span>
+              <a href="https://wa.me/6282347302682" target="_blank" rel="noreferrer" className="hover:underline">
+                Fatima: 0823-4730-2682
+              </a>
+              <span>•</span>
+              <a href="https://wa.me/6289654850260" target="_blank" rel="noreferrer" className="hover:underline">
+                Admin WA
+              </a>
+            </div>
+          </div>
+
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#002D61]/60 hover:text-[#700702] transition"
+          >
+            ← Kembali ke Beranda
+          </Link>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// ======================
 // Main Page
 // ======================
 const EMPTY_FORM: RegistrationFormData = {
@@ -127,13 +234,16 @@ export default function RegisterPage() {
     (account) => account.bank === selectedPaymentMethod
   );
 
-  // Redirect jika belum login
+  // Redirect jika belum login (hanya jika pendaftaran masih dibuka)
   useEffect(() => {
-    if (authStatus === "unauthenticated") router.replace("/login");
+    if (IS_REGISTRATION_OPEN && authStatus === "unauthenticated") {
+      router.replace("/login");
+    }
   }, [authStatus, router]);
 
   // Isi default dari sesi user
   useEffect(() => {
+    if (!IS_REGISTRATION_OPEN) return;
     if (!initialized && user) {
       const timer = window.setTimeout(() => {
         sd((prev) => ({
@@ -146,6 +256,11 @@ export default function RegisterPage() {
       return () => window.clearTimeout(timer);
     }
   }, [user, initialized]);
+
+  // Tampilkan tampilan pendaftaran ditutup jika pendaftaran tidak aktif
+  if (!IS_REGISTRATION_OPEN) {
+    return <RegistrationClosedView isAuthenticated={isAuthenticated} />;
+  }
 
   if (authStatus === "loading" || !isAuthenticated) return null;
 
@@ -309,6 +424,10 @@ export default function RegisterPage() {
   // ======================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!IS_REGISTRATION_OPEN) {
+      showStepError("Pendaftaran telah resmi ditutup pada 7 Oktober 2026.");
+      return;
+    }
     if (currentStep !== 4) {
       handleNextStep();
       return;

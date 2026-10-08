@@ -1,10 +1,14 @@
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
+
 export default function Timeline() {
   const phases = [
     {
       date: "1 Agustus – 7 Oktober 2026",
       title: "Case Open",
-      subtitle: "Pembukaan Pendaftaran",
-      desc: "Pendaftaran dibuka untuk seluruh siswa SMA/SMK/MA sederajat se-Sulawesi Selatan. Daftarkan tim Anda melalui website resmi.",
+      subtitle: IS_REGISTRATION_OPEN ? "Pembukaan Pendaftaran" : "Pendaftaran Ditutup",
+      desc: IS_REGISTRATION_OPEN
+        ? "Pendaftaran dibuka untuk seluruh siswa SMA/SMK/MA sederajat se-Sulawesi Selatan. Daftarkan tim Anda melalui website resmi."
+        : "Pendaftaran telah resmi ditutup pada 7 Oktober 2026. Panitia sedang memproses verifikasi tim pendaftar untuk persiapan Technical Meeting.",
       color: "red",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

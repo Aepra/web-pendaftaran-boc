@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Footer from "@/components/layout/Footer";
+import { IS_REGISTRATION_OPEN } from "@/lib/constants";
 
 type TabType = "umum" | "babak" | "faq";
 type StageKey = 1 | 2 | 3 | 4 | 5;
@@ -882,10 +883,10 @@ export default function TatibPage() {
                   Hubungi Admin WhatsApp
                 </a>
                 <Link
-                  href="/register"
+                  href={IS_REGISTRATION_OPEN ? "/register" : "/profile"}
                   className="px-5 py-2.5 rounded-xl bg-[#700702] text-white font-extrabold text-xs hover:bg-[#8a0903] transition-all shadow-sm"
                 >
-                  Daftarkan Tim Sekarang
+                  {IS_REGISTRATION_OPEN ? "Daftarkan Tim Sekarang" : "Cek Status Tim di Profil"}
                 </Link>
               </div>
             </div>
